@@ -1,0 +1,9 @@
+Evidentia System
+
+Symbolic linking:
+mklink /d "C:\xampp\htdocs\evidentia" "D:\evidentia\evidentia"
+
+Core Tools:
+1. XAMPP
+2. Node.js
+3. VS Code

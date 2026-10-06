@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+/* --- PRINT RULES --- */
+@media print {
+  @page {
+    /* Truncates native window header metadata titles, page bounds, and timestamp dates */
+    margin: 0;
+  }
+  
+  body {
+    /* Offsets content safely from the absolute physical printable perimeter edge */
+    padding: 15mm !important;
+    background-color: white !important;
+    color: black !important;
+  }
+
+  /* Completely masks interactive layout elements during document capture streams */
+  .print\:hidden {
+    display: none !important;
+  }
+}

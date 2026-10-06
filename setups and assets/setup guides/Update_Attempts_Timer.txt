@@ -1,0 +1,9 @@
+ALTER TABLE users 
+ADD COLUMN failed_attempts INT DEFAULT 0,
+ADD COLUMN lockout_until DATETIME DEFAULT NULL;
+
+
+Reset timers (can be used during presentations, if timers are set to 15mins and above)
+
+UPDATE users 
+SET failed_attempts = 0, lockout_until = NULL;

@@ -1,0 +1,12 @@
+Evichain
+
+Terminals
+D:\evidentia\backend\api>php -S localhost:8081
+D:\evidentia\backend\api>ngrok http 8081
+D:\evidentia\frontend> npm run dev
+
+XAMPP: Start Apache and MySQL
+
+PHPADMIN Link
+
+http://localhost/phpmyadmin/index.php
