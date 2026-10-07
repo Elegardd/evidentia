@@ -1,0 +1,80 @@
+Integrating it to GitHub
+
+Scenario: First use
+git init
+git add .
+git config --global user.email "Wilhelmbrighton@gmail.com"
+git config --global user.name "amnekku"
+git branch -M main
+git remote add origin https://github.com/Elegardd/evidentia.git
+git push -u origin main"
+
+
+If there are future updates and need to update again:
+git add .
+git commit -m "Describe your update here"
+git push
+
+
+Evidentia Monorepo Deployment Guide
+Phase 1: Local Setup & Git Configuration
+Installed / Verified Git on your Windows system to manage project versions.
+
+Configured Git Identity globally so your commits are attributed correctly:
+
+Bash
+git config --global user.name "Wilhelm Brighton"
+git config --global user.email "Wilhelmbrighton@gmail.com"
+Initialized Git inside the root project directory (D:\evidentia):
+
+Bash
+cd D:\evidentia
+git init
+git add .
+git commit -m "First integration of evichain"
+Phase 2: Connecting and Pushing to GitHub
+Created a new GitHub repository named evidentia under your account (Elegardd/evidentia).
+
+Linked the local repository to GitHub and set the main branch:
+
+Bash
+git branch -M main
+git remote add origin https://github.com/Elegardd/evidentia.git
+git push -u origin main
+Future Updates Workflow: Whenever you make changes to your project code, you can push updates live using:
+
+Bash
+git add .
+git commit -m "Your update description"
+git push
+Phase 3: Deploying Frontend to Cloudflare Pages
+Created a Pages Project: Logged into the Cloudflare Dashboard, navigated to Workers & Pages, and selected Pages > Connect to Git to link your Elegardd/evidentia repository.
+
+Configured Monorepo Build Settings: Because your project is structured with a distinct frontend/ directory, the build settings were mapped as follows:
+
+Root directory (path): frontend
+
+Build command: npm run build
+
+Build output directory: dist
+
+Automatic Deployment: Cloudflare successfully cloned the repository, navigated into the frontend directory, ran the build sequence, and published your static assets to a live .pages.dev URL.
+
+Phase 4: Setting Up Custom Domain (evichain.org via Spaceship)
+Since your domain is registered with Spaceship, setting it up with Cloudflare Pages involves pointing the domain to Cloudflare's nameservers so Cloudflare can automatically handle your SSL security certificate and traffic routing:
+
+Add Custom Domain in Cloudflare:
+
+Go to your Cloudflare Pages project dashboard.
+
+Click on the Custom domains tab and enter evichain.org.
+
+Update Nameservers at Spaceship:
+
+Cloudflare will provide you with two authoritative nameservers (typically ending in *.cloudflare.com).
+
+Log into your Spaceship account dashboard, locate your domain list, and find the DNS / Nameservers section for evichain.org.
+
+Change the default/custom nameservers to use the Cloudflare nameservers provided.
+
+Propagation: Once saved at Spaceship, global DNS propagation typically takes anywhere from a few minutes up to a couple of hours. Once complete, your site will be live securely at [https://evichain.org](https://evichain.org).
