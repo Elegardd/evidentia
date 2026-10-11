@@ -90,7 +90,6 @@ export default function SignaturePadModal({
     if (activeTab === "draw" && canvasRef.current) {
       const url = canvasRef.current.toDataURL("image/png");
       setBaseSignatureUrl(url);
-      // Instantiate an initial signature element on the document sheet layout
       setSignatures([
         { id: Date.now(), url, position: { x: 280, y: 940 }, scale: 1.5 },
       ]);
@@ -121,15 +120,9 @@ export default function SignaturePadModal({
         tempCanvas.height = img.height;
         tempCtx.drawImage(img, 0, 0);
 
-        const imgData = tempCtx.getImageData(
-          0,
-          0,
-          tempCanvas.width,
-          tempCanvas.height,
-        );
+        const imgData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
         const data = imgData.data;
 
-        // Make pure white/light backgrounds transparent
         for (let i = 0; i < data.length; i += 4) {
           if (data[i] > 220 && data[i + 1] > 220 && data[i + 2] > 220) {
             data[i + 3] = 0;
@@ -190,7 +183,6 @@ export default function SignaturePadModal({
 
   const handleDragEnd = () => setActiveDragId(null);
 
-  // Clones signature coordinates instantly
   const duplicateSignature = (e, targetSig) => {
     e.stopPropagation();
     const newSignatureInstance = {
@@ -228,23 +220,19 @@ export default function SignaturePadModal({
       !handshakeTargetCustodian ||
       !handshakeTargetSupervisor
     ) {
-      // Trigger error variant if they bypassed button states somehow
       setToast({
         isVisible: true,
-        message:
-          "Validation Error: Complete all cryptographic handshake requirements.",
+        message: "Validation Error: Complete all cryptographic handshake requirements.",
         type: "error",
       });
       return;
     }
 
-    // Call onSave with the base signature URL (which your parent views expect)
     onSave(baseSignatureUrl);
 
     setToast({
       isVisible: true,
-      message:
-        "Secure Chain of Custody signature recorded successfully. Appending ledger blocks...",
+      message: "Secure Chain of Custody signature recorded successfully. Appending ledger blocks...",
       type: "success",
     });
 
@@ -290,7 +278,7 @@ export default function SignaturePadModal({
 
         {/* Workspace Splitting Layout */}
         <div className="flex-1 flex overflow-hidden min-h-0">
-          {/* LEFT INTERACTIVE WINDOW: Replicated Official Form Layout (Exact Copy matching Print Layout with absolute layout sizing) */}
+          {/* LEFT INTERACTIVE WINDOW: Replicated Official Form Layout */}
           <div className="w-2/3 bg-slate-950 p-6 overflow-y-auto border-r border-slate-800/60 custom-scrollbar flex justify-center items-start">
             <div
               ref={containerRef}
@@ -310,7 +298,6 @@ export default function SignaturePadModal({
                   </div>
 
                   <div className="flex justify-between items-center mt-2 pb-2 border-b border-black text-black">
-                    {/* LEFT LOGO */}
                     <div className="w-24 h-24 shrink-0 flex items-center justify-center p-0">
                       <img
                         src="/logo/scjps.png"
@@ -344,9 +331,7 @@ export default function SignaturePadModal({
                       </p>
                     </div>
 
-                    {/* RIGHT LOGO */}
                     <div className="w-24 h-24 shrink-0 flex items-center justify-center p-0">
-                      {/* Replace src with your local assets path, e.g., /assets/station_logo.png */}
                       <img
                         src="/logo/ub_seal.png"
                         alt="Station Badge Emblem"
@@ -358,10 +343,14 @@ export default function SignaturePadModal({
                   <div className="flex justify-end mt-6">
                     <div className="text-center w-52">
                       <div className="border-b border-black text-xs px-2 py-0.5 min-h-[1.5rem] text-black">
-                        {evidenceItem.date_collected
+                        {evidenceItem.created_at
                           ? new Date(
-                            evidenceItem.date_collected,
-                          ).toLocaleDateString()
+                            evidenceItem.created_at,
+                          ).toLocaleDateString(undefined, {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })
                           : ""}
                       </div>
                       <p className="text-xs mt-1 text-black">Date</p>
@@ -413,10 +402,11 @@ export default function SignaturePadModal({
                             ""}
                         </td>
                         <td className="p-2 whitespace-normal leading-tight font-mono">
-                          {evidenceItem.date_collected
-                            ? new Date(
-                              evidenceItem.date_collected,
-                            ).toLocaleDateString()
+                          {evidenceItem.created_at
+                            ? new Date(evidenceItem.created_at).toLocaleString([], {
+                              dateStyle: "short",
+                              timeStyle: "short",
+                            })
                             : ""}
                         </td>
                         <td className="p-2 text-left leading-tight">
@@ -432,8 +422,18 @@ export default function SignaturePadModal({
                         <td className="p-2 text-left italic text-gray-700">
                           {evidenceItem.condition_received || ""}
                         </td>
-                        <td className="p-2 text-left italic text-gray-400 font-mono text-[9px] pt-8">
-                          (Place signature stamp here)
+                        <td className="p-2 text-left align-middle relative pt-8">
+                          {evidenceItem?.collector_signature_hash ? (
+                            <img
+                              src={evidenceItem.collector_signature_hash}
+                              alt="Collector Signature"
+                              className="mx-auto max-h-6 max-w-full object-contain"
+                            />
+                          ) : (
+                            <span className="italic text-gray-400 font-mono text-[9px]">
+                              (Place signature stamp here)
+                            </span>
+                          )}
                         </td>
                       </tr>
                       {[1, 2, 3, 4, 5, 6].map((idx) => (
@@ -452,11 +452,9 @@ export default function SignaturePadModal({
                 </div>
 
                 <div className="grid grid-cols-3 gap-6 pt-12 text-xs text-center font-normal text-black">
-                  {/* SIGNATURE/PREPARED BY BLOCK (LINES 320-331) */}
                   <div className="space-y-1">
                     <p className="text-left pl-4 text-gray-500">Prepared by:</p>
                     <div className="relative flex flex-col items-center justify-end group">
-                      {/* COLLECTOR'S SIGNATURE SLOT */}
                       <div className="w-full h-10 flex items-center justify-center mb-0.5 relative z-10">
                         {evidenceItem?.collector_signature_hash ? (
                           <img
@@ -470,8 +468,6 @@ export default function SignaturePadModal({
                           </div>
                         )}
                       </div>
-
-                      {/* PRINTED NAME AND SUB-TEXT UNDERLINE */}
                       <div className="border-b border-black px-4 font-bold uppercase min-h-[1.25rem] w-full text-center text-[11px] relative z-20 bg-transparent">
                         {evidenceItem?.turned_over_by_name ||
                           evidenceItem?.collector_name ||
@@ -488,12 +484,11 @@ export default function SignaturePadModal({
                       Certified by:
                     </p>
                     <div className="relative flex flex-col items-center justify-end group">
-                      {/* CUSTODIAN'S SIGNATURE SLOT */}
                       <div className="w-full h-10 flex items-center justify-center mb-0.5 relative z-10">
                         {evidenceItem?.custodian_signature_hash ? (
                           <img
                             src={evidenceItem.custodian_signature_hash}
-                            alt="Collector Signature"
+                            alt="Custodian Signature"
                             className="absolute max-h-12 object-contain"
                           />
                         ) : (
@@ -502,9 +497,8 @@ export default function SignaturePadModal({
                           </div>
                         )}
                       </div>
-                      <div className="text-center">
+                      <div className="text-center w-full">
                         <div className="border-b border-black px-4 font-medium uppercase min-h-[1.25rem]">
-                          {/* {evidenceItem.certified_by || evidenceItem.certified_by || currentUser?.fullName} */}
                           <span className="font-bold text-black uppercase underline">
                             {handshakeTargetCustodian || "AWAITING SELECTION"}
                           </span>
@@ -519,12 +513,11 @@ export default function SignaturePadModal({
                   <div className="space-y-1">
                     <p className="text-left pl-4 text-gray-500">Noted by:</p>
                     <div className="relative flex flex-col items-center justify-end group">
-                      {/* CUSTODIAN'S SIGNATURE SLOT */}
                       <div className="w-full h-10 flex items-center justify-center mb-0.5 relative z-10">
                         {evidenceItem?.supervisor_signature_hash ? (
                           <img
                             src={evidenceItem.supervisor_signature_hash}
-                            alt="Collector Signature"
+                            alt="Supervisor Signature"
                             className="absolute max-h-12 object-contain"
                           />
                         ) : (
@@ -534,7 +527,6 @@ export default function SignaturePadModal({
                         )}
                       </div>
                       <div className="border-b border-black w-11/12 mx-auto font-medium uppercase min-h-[1.25rem]">
-                        {/* PRIORITIZE LIVE SELECTION FROM DROPDOWN -> THEN FALLBACK TO DATABASE VALUE OR BLANK FILLER */}
                         <span className="font-bold text-black uppercase underline">
                           {handshakeTargetSupervisor || "AWAITING SELECTION"}
                         </span>
@@ -589,12 +581,61 @@ export default function SignaturePadModal({
                       </div>
                     </div>
 
-                    <div className="flex items-end">
-                      <span className="whitespace-nowrap pr-1">
-                        Witness Manifest:
+                    <div className="space-y-1 pt-1">
+                      <span className="font-bold text-gray-700 block text-[11px] uppercase tracking-wider">
+                        Witness Manifest & Verification:
                       </span>
-                      <div className="flex-1 border-b border-black font-medium px-2 pb-0.5 min-h-[1.25rem]">
-                        {evidenceItem.witness_names || "N/A"}
+                      <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-xs">
+                        {(() => {
+                          const witnessList = evidenceItem.witness_names
+                            ? evidenceItem.witness_names.split(',').map(name => name.trim()).filter(Boolean)
+                            : [];
+                          const structuredWitnesses = Array.isArray(evidenceItem.witnesses)
+                            ? evidenceItem.witnesses
+                            : (witnessList.map(name => ({ name, signature_url: null, timestamp: null })));
+
+                          return structuredWitnesses.length > 0 ? (
+                            <div className={`grid gap-4 ${structuredWitnesses.length === 1 ? 'grid-cols-1 max-w-sm mx-auto' : 'grid-cols-2'}`}>
+                              {structuredWitnesses.map((w, idx) => (
+                                <div key={idx} className="flex flex-col justify-end text-center space-y-1">
+                                  <div className="h-10 w-full flex items-center justify-center relative">
+                                    {w.signature_url ? (
+                                      <img
+                                        src={w.signature_url}
+                                        alt={`Witness ${idx + 1} Signature`}
+                                        className="max-h-10 object-contain mix-blend-multiply absolute opacity-100"
+                                      />
+                                    ) : (
+                                      <span className="text-[9px] text-gray-400 italic">(No Signature Captured)</span>
+                                    )}
+                                  </div>
+                                  <div className="border-b border-black font-bold uppercase text-gray-900 pb-0.5 text-center font-mono tracking-wide">
+                                    {w.name || w.witnessName || w}
+                                  </div>
+                                  <span className="block text-[8px] uppercase tracking-wider text-gray-500 font-bold">
+                                    Witness {idx + 1}: Signature over Printed Name
+                                  </span>
+                                  {w.timestamp && (
+                                    <span className="text-[7px] text-gray-400 font-mono">
+                                      Signed: {new Date(w.timestamp).toLocaleString()}
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-1 max-w-sm mx-auto">
+                              <div className="flex flex-col justify-end h-10 text-center">
+                                <div className="border-b border-gray-400 text-gray-400 pb-0.5">
+                                  {evidenceItem.witness_names || "(No Witness Registered)"}
+                                </div>
+                                <span className="block text-[8px] uppercase tracking-wider text-gray-500 font-bold mt-0.5">
+                                  Witness Signature Block
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
 
@@ -603,8 +644,8 @@ export default function SignaturePadModal({
                         Time, Date and Place of Occurrence:
                       </span>
                       <div className="flex-1 border-b border-black font-medium px-2 pb-0.5 font-mono text-[11px]">
-                        {evidenceItem.date_collected
-                          ? `${new Date(evidenceItem.date_collected).toLocaleString()} `
+                        {evidenceItem.created_at
+                          ? `${new Date(evidenceItem.created_at).toLocaleString()} `
                           : ""}
                         {evidenceItem.collection_place ||
                           evidenceItem.retrieval_address
@@ -672,17 +713,12 @@ export default function SignaturePadModal({
                               Time and Date
                             </span>
                             <div className="col-span-9 border-b border-black px-2 min-h-[1.25rem] font-mono">
-                              {evidenceItem.date_collected
-                                ? new Date(evidenceItem.date_collected).toLocaleString('en-US', {
+                              {evidenceItem.created_at
+                                ? new Date(evidenceItem.created_at).toLocaleString('en-US', {
                                   dateStyle: 'medium',
                                   timeStyle: 'medium'
                                 })
                                 : ""}
-                              {/* {evidenceItem.date_collected
-                                ? new Date(
-                                  evidenceItem.date_collected,
-                                ).toLocaleString()
-                                : ""} */}
                             </div>
                           </div>
                           <div className="grid grid-cols-12 gap-1 items-end">
@@ -725,9 +761,9 @@ export default function SignaturePadModal({
                               Time and Date
                             </span>
                             <div className="col-span-9 border-b border-black px-2 min-h-[1.25rem] font-mono">
-                              {evidenceItem.date_collected
+                              {evidenceItem.created_at
                                 ? new Date(
-                                  evidenceItem.date_collected,
+                                  evidenceItem.created_at,
                                 ).toLocaleString()
                                 : ""}
                             </div>
@@ -822,7 +858,6 @@ export default function SignaturePadModal({
                     className="max-w-full max-h-full object-contain pointer-events-none filter drop-shadow-sm"
                   />
 
-                  {/* Action Controls for Specific Signature Instance */}
                   <div className="absolute -top-6 right-0 bg-slate-950 text-white rounded px-1 text-[11px] opacity-0 group-hover:opacity-100 transition-opacity font-sans flex items-center gap-1 shadow-md pointer-events-auto z-[60]">
                     <button
                       type="button"
@@ -915,7 +950,6 @@ export default function SignaturePadModal({
                   </span>
                 </div>
 
-                {/* Receiving Custodian Officer */}
                 <div className="space-y-1.5 relative group">
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide transition-colors group-focus-within:text-blue-400">
                     Receiving Custodian Officer
@@ -944,7 +978,6 @@ export default function SignaturePadModal({
                         </option>
                       ))}
                     </select>
-                    {/* Modern Custom Dropdown Arrow */}
                     <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-500 transition-colors group-focus-within:text-blue-400">
                       <svg
                         className="w-4 h-4"
@@ -963,7 +996,6 @@ export default function SignaturePadModal({
                   </div>
                 </div>
 
-                {/* Oversight Station Supervisor */}
                 <div className="space-y-1.5 relative group">
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide transition-colors group-focus-within:text-blue-400">
                     Oversight Station Supervisor
@@ -992,7 +1024,6 @@ export default function SignaturePadModal({
                         </option>
                       ))}
                     </select>
-                    {/* Modern Custom Dropdown Arrow */}
                     <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-500 transition-colors group-focus-within:text-blue-400">
                       <svg
                         className="w-4 h-4"
@@ -1012,7 +1043,6 @@ export default function SignaturePadModal({
                 </div>
               </div>
 
-              {/* Remarks Ledger Logging */}
               <div className="space-y-1.5">
                 <label className="block text-[10px] font-bold text-slate-400 uppercase">
                   2. Handshake Turnover Remarks *
@@ -1026,7 +1056,6 @@ export default function SignaturePadModal({
                 />
               </div>
 
-              {/* Signature Input Controls */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <label className="text-[10px] font-bold text-slate-400 uppercase">
@@ -1113,7 +1142,6 @@ export default function SignaturePadModal({
                 )}
               </div>
 
-              {/* Helpful Pro-tip banner explicitly guiding replication */}
               <div className="bg-blue-950/40 border border-blue-900/40 text-blue-300 rounded-xl p-2.5 text-[9px] leading-snug">
                 💡 <span className="font-bold">Multi-Signing Action:</span> Drag
                 signature overlays to position them. Hover over any signature
@@ -1124,7 +1152,6 @@ export default function SignaturePadModal({
                 to duplicate it across form page zones.
               </div>
 
-              {/* Agreement Verification */}
               <div className="flex gap-2 items-start bg-slate-950/40 border border-slate-800/50 p-2.5 rounded-xl">
                 <input
                   type="checkbox"
@@ -1144,7 +1171,6 @@ export default function SignaturePadModal({
               </div>
             </div>
 
-            {/* Modal Navigation Control Bar */}
             <div className="flex gap-2 text-xs uppercase font-bold pt-3 border-t border-slate-800 mt-2 shrink-0">
               <button
                 type="button"
@@ -1172,7 +1198,6 @@ export default function SignaturePadModal({
           </div>
         </div>
       </div>
-      {/* GLOBAL TOAST ELEMENT STAGE NODE */}
       <NotificationModal
         isVisible={toast.isVisible}
         message={toast.message}
