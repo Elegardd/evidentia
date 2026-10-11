@@ -88,7 +88,7 @@ export default function EvidenceSupervisorView({ currentUser }) {
   const fetchPersonnelData = useCallback(async () => {
     try {
       // const url = "http://localhost:8081/get_users.php?action=personnel";
-      const url = "https://steadier-headscarf-maggot.ngrok-free.dev/auth_handler.php?action=personnel";
+      const url = "https://steadier-headscarf-maggot.ngrok-free.dev/get_users.php?action=personnel";
       const response = await axios.get(url, {
         headers: { "ngrok-skip-browser-warning": "true" },
       });
@@ -784,7 +784,6 @@ export default function EvidenceSupervisorView({ currentUser }) {
       )}
 
       {/* Print row */}
-      {/* Print row */}
       {activePrintRow && (() => {
         // Safely parse witness names splitting on commas
         const witnessList = activePrintRow.witness_names
@@ -795,74 +794,48 @@ export default function EvidenceSupervisorView({ currentUser }) {
           <div className="print-portal-wrapper fixed inset-0 bg-black/80 backdrop-blur-sm z-50 overflow-y-auto flex justify-center p-0 sm:p-6 print:absolute print:inset-0 print:bg-white print:block print:z-[99999]">
             <style dangerouslySetInnerHTML={{
               __html: `
-          @media print {
-            /* 1. Hide the entire body visually, but keep layout trees alive to prevent collapsing */
-            html, body {
-              background-color: #ffffff !important;
-              color: #000000 !important;
-              margin: 0 !important;
-              padding: 0 !important;
-              visibility: hidden !important;
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
+    @media print {
+      /* Force everything off except the print portal */
+      body * {
+        visibility: hidden !important;
+      }
+      
+      .print-portal-container,
+      .print-portal-container * {
+        visibility: visible !important;
+      }
 
-            /* 2. Force ONLY our specific printable template area and its contents to be visible */
-            .print-portal-container,
-            .print-portal-container * {
-              visibility: visible !important;
-            }
-            
-            /* 3. Absolute anchor the visible container to the top-left of Page 1 */
-            .print-portal-container {
-              position: absolute !important;
-              left: 0 !important;
-              top: 0 !important;
-              width: 100% !important;
-              max-width: 100% !important;
-              background-color: #ffffff !important;
-              color: #000000 !important;
-              padding: 0 !important;
-              margin: 0 !important;
-              box-shadow: none !important;
-              border: none !important;
-              display: flex !important;
-              flex-direction: column !important;
-            }
+      .print-portal-wrapper {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        background: white !important;
+        z-index: 999999 !important;
+        overflow: visible !important;
+      }
 
-            .print-portal-container > div {
-              background-color: #ffffff !important;
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
+      .print-page-break {
+        page-break-after: always !important;
+        break-after: page !important;
+        display: block !important;
+        height: auto !important;
+      }
 
-            /* 4. Force ink override rules so elements don't drop text contrast */
-            .print-portal-container text,
-            .print-portal-container p,
-            .print-portal-container span,
-            .print-portal-container h1,
-            .print-portal-container h2,
-            .print-portal-container h3,
-            .print-portal-container div {
-              color: #000000 !important;
-            }
-
-            @page { 
-              margin: 10mm !important; 
-              background-color: #ffffff !important;
-            }
-            
-            .print\\:hidden { 
-              display: none !important; 
-            }
-          }
-        `}} />
+      @page {
+        size: A4 portrait;
+        margin: 10mm;
+      }
+    }
+  `
+            }} />
 
             {/* Printable Portal Window Container */}
             <div className="print-portal-container bg-white text-black w-full max-w-[210mm] mx-auto shadow-2xl flex flex-col relative print:shadow-none print:p-0">
 
               {/* ================= SHEET 1: PROPERTY EVIDENCE LOG LAYOUT ================= */}
-              <div className="bg-white p-8 sm:p-10 flex flex-col justify-between print:h-[297mm] print:box-border print:page-break-after-always" style={{ pageBreakAfter: 'always', breakAfter: 'page', backgroundColor: '#ffffff' }}>
+              <div className="bg-white p-8 sm:p-10 flex flex-col justify-between print-page-break print:p-0 print:box-border" style={{ backgroundColor: '#ffffff' }}>
                 <div>
                   <div className="text-[11px] font-normal font-sans leading-tight text-black">
                     <p>CSI Form "4"</p>
@@ -920,7 +893,11 @@ export default function EvidenceSupervisorView({ currentUser }) {
                         {activePrintRow.date_collected
                           ? new Date(
                             activePrintRow.date_collected,
-                          ).toLocaleDateString()
+                          ).toLocaleDateString(undefined, {
+                            month: "long",
+                            day: "numeric",
+                            year: "numeric",
+                          })
                           : ""}
                       </div>
                       <p className="text-xs mt-1 text-black">Date</p>
@@ -972,10 +949,11 @@ export default function EvidenceSupervisorView({ currentUser }) {
                             ""}
                         </td>
                         <td className="p-2 whitespace-normal leading-tight font-mono">
-                          {activePrintRow.date_collected
-                            ? new Date(
-                              activePrintRow.date_collected,
-                            ).toLocaleDateString()
+                          {activePrintRow.created_at
+                            ? new Date(activePrintRow.created_at).toLocaleString([], {
+                              dateStyle: "short",
+                              timeStyle: "short",
+                            })
                             : ""}
                         </td>
                         <td className="p-2 text-left leading-tight">
@@ -991,9 +969,19 @@ export default function EvidenceSupervisorView({ currentUser }) {
                         <td className="p-2 text-left italic text-gray-700">
                           {activePrintRow.condition_received || ""}
                         </td>
-                        <td className="p-2 text-left italic text-gray-400 font-mono text-[9px] pt-6">
-                          (Place signature stamp here)
-                        </td>
+                        {activePrintRow?.collector_signature_hash ? (
+                          <td className="p-1 text-center align-middle relative">
+                            <img
+                              src={activePrintRow.collector_signature_hash}
+                              alt="Collector Signature"
+                              className="mx-auto max-h-6 max-w-full object-contain"
+                            />
+                          </td>
+                        ) : (
+                          <td className="p-2 text-left italic text-gray-400 font-mono text-[9px] pt-6">
+                            (Place signature stamp here)
+                          </td>
+                        )}
                       </tr>
                       {[1, 2, 3, 4, 5, 6].map((idx) => (
                         <tr key={idx} className="divide-x divide-black h-10">
@@ -1102,7 +1090,7 @@ export default function EvidenceSupervisorView({ currentUser }) {
               </div>
 
               {/* ================= SHEET 2: CHAIN OF CUSTODY FORM LAYOUT ================= */}
-              <div className="bg-white p-8 sm:p-10 flex flex-col justify-between border-t-2 border-dashed border-gray-300 print:border-none print:h-[297mm] print:box-border" style={{ backgroundColor: '#ffffff' }}>
+              <div className="bg-white p-8 sm:p-10 flex flex-col justify-between border-t-2 border-dashed border-gray-300 print:border-none print-page-break print:p-0 print:box-border" style={{ backgroundColor: '#ffffff' }}>
                 <div>
                   <div className="text-center space-y-0.5 text-black">
                     <p className="text-xs">Republic of the Philippines</p>
@@ -1204,8 +1192,8 @@ export default function EvidenceSupervisorView({ currentUser }) {
                         Time, Date and Place of Occurrence:
                       </span>
                       <div className="flex-1 border-b border-black font-medium px-2 pb-0.5 font-mono text-[11px]">
-                        {activePrintRow.date_collected
-                          ? `${new Date(activePrintRow.date_collected).toLocaleString()} `
+                        {activePrintRow.created_at
+                          ? `${new Date(activePrintRow.created_at).toLocaleString()} `
                           : ""}
                         {activePrintRow.collection_place ||
                           activePrintRow.retrieval_address
@@ -1301,7 +1289,7 @@ export default function EvidenceSupervisorView({ currentUser }) {
                             <div className="border-b border-black px-4 font-bold text-blue-900 uppercase min-h-[1.25rem]">
                               {activePrintRow.turned_over_by_agency ||
                                 activePrintRow.investigating_agency} -
-                               {activePrintRow.noted_by ||
+                              {activePrintRow.noted_by ||
                                 "______________________________________"}
                             </div>
                             <span className="text-[10px] text-gray-500 block mt-0.5">
@@ -1349,22 +1337,102 @@ export default function EvidenceSupervisorView({ currentUser }) {
 
                     {/* CUSTODY BLOCK 2 */}
                     <div className="space-y-3 opacity-40 select-none">
-                      <div className="grid grid-cols-12 gap-2 items-start">
-                        <div className="col-span-4 font-normal pt-1">
+                      <div className="grid grid-cols-12 gap-1 items-start">
+                        <div className="col-span-4 font-normal pt-1 uppercase text-[10px] text-gray-600 font-bold">
                           TURNED OVER BY
                         </div>
-                        <div className="col-span-8 space-y-1.5">
-                          <div className="border-b border-gray-300 min-h-[1.25rem]"></div>
-                          <div className="border-b border-gray-300 min-h-[1.25rem]"></div>
+                        <div className="col-span-8 space-y-2">
+                          <div className="text-center">
+                            <div className="border-b border-black px-4 font-medium uppercase min-h-[1.25rem]">
+                              {activePrintRow.certified_by ||
+                                activePrintRow.collector_name ||
+                                "Seizing Officer"}
+                            </div>
+                            <span className="text-[10px] text-gray-500 block mt-0.5">
+                              (Name and Designation)
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-12 gap-1 items-end">
+                            <span className="col-span-3 text-left text-gray-500">
+                              Agency/Address
+                            </span>
+                            <div className="col-span-9 border-b border-black px-2 min-h-[1.25rem] uppercase">
+                              {activePrintRow.turned_over_by_agency ||
+                                activePrintRow.investigating_agency}
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-12 gap-1 items-end">
+                            <span className="col-span-3 text-left text-gray-500">
+                              Time and Date
+                            </span>
+                            <div className="col-span-9 border-b border-black px-2 min-h-[1.25rem] font-mono">
+                              {activePrintRow.created_at
+                                ? new Date(
+                                  activePrintRow.created_at,
+                                ).toLocaleString()
+                                : ""}
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-12 gap-1 items-end">
+                            <span className="col-span-3 text-left text-gray-500">
+                              Remarks
+                            </span>
+                            <div className="col-span-9 border-b border-black px-2 italic text-gray-600 min-h-[1.25rem]">
+                              Initial Processing Handover /{" "}
+                              {activePrintRow.condition_received}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <div className="grid grid-cols-12 gap-2 items-start pt-1">
-                        <div className="col-span-4 font-normal pt-1">
+                      <div className="grid grid-cols-12 gap-2 items-start pt-1 border-t border-dashed border-gray-200">
+                        <div className="col-span-4 font-normal pt-1 uppercase text-[10px] text-blue-900 font-bold">
                           RECEIVED BY
                         </div>
-                        <div className="col-span-8 space-y-1.5">
-                          <div className="border-b border-gray-300 min-h-[1.25rem]"></div>
-                          <div className="border-b border-gray-300 min-h-[1.25rem]"></div>
+                        <div className="col-span-8 space-y-2">
+                          <div className="text-center">
+                            <div className="border-b border-black px-4 font-bold text-blue-900 uppercase min-h-[1.25rem]">
+                              {activePrintRow.turned_over_by_agency ||
+                                activePrintRow.investigating_agency} -
+                              {activePrintRow.noted_by ||
+                                "______________________________________"}
+                            </div>
+                            <span className="text-[10px] text-gray-500 block mt-0.5">
+                              (Name and Designation)
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-12 gap-1 items-end">
+                            <span className="col-span-3 text-left text-gray-500">
+                              Agency/Address
+                            </span>
+                            <div className="col-span-9 border-b border-black px-2 min-h-[1.25rem] uppercase">
+                              {activePrintRow.received_by_agency ||
+                                "CRIME LABORATORY EVIDENCE VAULT DIVISION"}
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-12 gap-1 items-end">
+                            <span className="col-span-3 text-left text-gray-500">
+                              Time and Date
+                            </span>
+                            <div className="col-span-9 border-b border-black px-2 min-h-[1.25rem] font-mono">
+                              {activePrintRow.created_at
+                                ? new Date(
+                                  activePrintRow.created_at,
+                                ).toLocaleString()
+                                : ""}
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-12 gap-1 items-end">
+                            <span className="col-span-3 text-left text-gray-500">
+                              Remarks Ledger
+                            </span>
+                            <div className="col-span-9 border-b border-black px-2 min-h-[1.25rem] font-mono text-xs text-blue-950 font-semibold">
+                              Vault Allocation:{" "}
+                              {activePrintRow.storage_vault || "Vault Room"} [
+                              {activePrintRow.workflow_stage ||
+                                "Turnover Pending"}
+                              ]
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1383,10 +1451,14 @@ export default function EvidenceSupervisorView({ currentUser }) {
               <div className="p-6 bg-slate-50 border-t border-slate-200 print:hidden flex justify-end items-center gap-3">
                 <button
                   type="button"
-                  onClick={() => window.print()}
+                  onClick={() => {
+                    // Force a brief timeout to ensure DOM rendering completes before print dialog triggers
+                    setTimeout(() => {
+                      window.print();
+                    }, 100);
+                  }}
                   className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-xs text-white transition-colors font-bold uppercase tracking-wider rounded-lg shadow-sm flex items-center gap-2"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
                   Export Report to PDF
                 </button>
 

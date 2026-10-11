@@ -10,7 +10,7 @@ export default function WitnessSignatureModal({
   const [localWitnessName, setLocalWitnessName] = useState("");
   const [isAgreed, setIsAgreed] = useState(false);
   const [hasSignature, setHasSignature] = useState(false);
-  
+
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [uploadedImage, setUploadedImage] = useState(null);
@@ -25,7 +25,7 @@ export default function WitnessSignatureModal({
       setUploadedImage(null);
       setSignatureUrl(null);
       setActiveTab("draw");
-      
+
       setTimeout(() => {
         if (canvasRef.current) {
           const canvas = canvasRef.current;
@@ -124,6 +124,7 @@ export default function WitnessSignatureModal({
     onSave({
       witnessName: localWitnessName.trim(),
       signatureUrl: url,
+      timestamp: new Date().toISOString()
     });
     onClose();
   };
@@ -165,14 +166,7 @@ export default function WitnessSignatureModal({
                   onClick={() => { setActiveTab("draw"); setUploadedImage(null); }}
                   className={`px-2.5 py-1 rounded-md transition-all ${activeTab === "draw" ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white"}`}
                 >
-                  Draw
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("upload")}
-                  className={`px-2.5 py-1 rounded-md transition-all ${activeTab === "upload" ? "bg-blue-600 text-white" : "text-slate-400 hover:text-white"}`}
-                >
-                  Upload
+                  Draw |
                 </button>
               </div>
             </div>

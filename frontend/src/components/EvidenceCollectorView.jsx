@@ -1,6 +1,6 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useState, useEffect, useRef } from "react";
-import { PenTool, ImagePlus } from "lucide-react";
+import { PenTool, ImagePlus, Image } from "lucide-react";
 import axios from "axios";
 import EvidentiaFooter from "./EvidentiaFooter";
 import Spline from "@splinetool/react-spline";
@@ -9,7 +9,7 @@ import SignaturePadModal from "./SignaturePadModal";
 import WitnessSignatureModal from "./WitnessSignatureModal";
 
 import { handleExcelImport } from "./utils/evidenceImportService";
-import { handleImageCollectionUpload } from "./utils/evidenceImageUploadService";
+import { handleImageCollectionUpload } from "./utils/uploadEvidenceImages";
 import { NotificationModal } from "./NotificationModal";
 
 // Evidence Categories and Items Mapping
@@ -141,7 +141,28 @@ export default function EvidenceCollectorView({ currentUser }) {
   const [evidenceList, setEvidenceList] = useState([]);
   const [activePrintRow, setActivePrintRow] = useState(null);
 
+  const [isUploading, setIsUploading] = useState(false);
   const [evidenceImages, setEvidenceImages] = useState([]);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const handleFile = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const newImages = files.map(file => {
+      const blobUrl = URL.createObjectURL(file);
+      console.log("Generated Blob URL for file:", file.name, blobUrl);
+      return {
+        file: file,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        previewUrl: blobUrl
+      };
+    });
+
+    setEvidenceImages(prev => [...prev, ...newImages]);
+    e.target.value = ""; // Reset input
+  };
 
   const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
   const [selectedEvidenceItem, setSelectedEvidenceItem] = useState(null);
@@ -306,6 +327,7 @@ export default function EvidenceCollectorView({ currentUser }) {
     setCaseTitle("");
     setSuspectNames("");
     setWitnessNames("");
+    setWitnesses([]);
     setEvidenceType("Digital Media");
     setPhysicalDescription("Hard Drive (HDD)");
     setQuantity(1);
@@ -315,25 +337,181 @@ export default function EvidenceCollectorView({ currentUser }) {
     setDateCollected("");
     setCollectionPlace("");
     setRetrievalAddress("");
+    setEvidenceImages([]);
   };
+
+  // const handleSaveEvidence = async (e) => {
+  //   e.preventDefault();
+  //   if (caseNumber.includes("XXXX") || caseNumber.trim() === "") {
+  //     setMessageType("error");
+  //     triggerToast(
+  //       "Error: Please replace 'XXXX' with the valid sequential case log number.",
+  //     );
+  //     return;
+  //   }
+
+  //   const corePrefix = (AGENCY_CASE_FORMATS[investigatingAgency] || "").split(
+  //     "XXXX",
+  //   )[0];
+  //   if (corePrefix && !caseNumber.startsWith(corePrefix)) {
+  //     setMessageType("error");
+  //     setMessage(
+  //       `Format Error: Case number for this station must begin with "${corePrefix}"`,
+  //     );
+  //     return;
+  //   }
+
+  //   // PREVENT ACCIDENTAL DUPLICATES CLIENT SIDE
+  //   if (!editingId) {
+  //     const isDuplicate = evidenceList.some(
+  //       (item) =>
+  //         item.investigating_agency?.toLowerCase() ===
+  //         investigatingAgency.toLowerCase() &&
+  //         item.case_number?.toLowerCase() === caseNumber.trim().toLowerCase(),
+  //     );
+
+  //     if (isDuplicate) {
+  //       setMessageType("error");
+  //       triggerToast(
+  //         "Collision Alert: Duplicate case layout entry rejected.",
+  //         "error",
+  //       );
+  //       // setMessage(`Collision Alert: An entry with Case Number "${caseNumber.trim()}" already exists for ${investigatingAgency}. Duplicate logs are prohibited.`);
+  //       return;
+  //     }
+  //   }
+
+  //   setLoading(true);
+
+  //   // --- UPDATE MARKER: SAVE EVIDENCE NORMALLY WITHOUT REDIRECTING TO SIGNATURE MODAL ---
+  //   if (!editingId) {
+  //     // Pathway: Normal direct POST creation payload setup
+  //     const payload = {
+  //       investigating_agency: investigatingAgency,
+  //       case_number: caseNumber,
+  //       case_title: caseTitle,
+  //       suspect_names: suspectNames,
+  //       witness_names: witnessNames,
+  //       witnesses: witnesses.map(w => ({
+  //         name: w.witnessName,
+  //         signature_url: w.signatureUrl,
+  //         timestamp: new Date().toISOString()
+  //       })),
+  //       evidence_type: evidenceType,
+  //       physical_description: physicalDescription,
+  //       quantity: parseInt(quantity),
+  //       condition_received: conditionReceived,
+  //       collector_name: currentUser.fullName,
+  //       certified_by: certifiedBy,
+  //       noted_by: notedBy,
+  //       date_collected: dateCollected,
+  //       collection_place: collectionPlace,
+  //       retrieval_address: retrievalAddress,
+  //       workflow_stage: "On Field",
+  //       turned_over_by_name: currentUser.fullName,
+  //       collector_signature_hash: null, // Storing empty hash since signature collection step is removed
+  //     };
+
+  //     try {
+  //       // const url = "http://localhost:8081/intake_triage.php";
+  //       const url = "https://steadier-headscarf-maggot.ngrok-free.dev/intake_triage.php";
+  //       const response = await axios.post(url, payload);
+  //       if (response.data?.status === "success") {
+  //         setMessageType("success");
+  //         triggerToast("New evidence record successfully created.", "success");
+  //         // setMessage({
+  //         //   isVisible: true,
+  //         //   message: "New evidence record successfully created.",
+  //         // });
+  //         setMessage("");
+  //         setTimeout(() => {
+  //           setToast({ isVisible: false, message: "", type: "error" });
+  //         }, 4000);
+  //         clearFormState();
+  //         fetchEvidence();
+  //         setCurrentPage(1);
+  //       }
+  //     } catch (err) {
+  //       console.error(err);
+  //       setMessageType("error");
+  //       setMessage("Transaction failed. Could not create evidence record.");
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //     return;
+  //   }
+
+  //   // --- RETAIN DIRECT SUBMIT PATH ONLY FOR EDITS (PUT REQUEST) ---
+  //   const payload = {
+  //     id: editingId,
+  //     investigating_agency: investigatingAgency,
+  //     case_number: caseNumber,
+  //     case_title: caseTitle,
+  //     suspect_names: suspectNames,
+  //     witness_names: witnessNames,
+  //     witnesses: witnesses.map(w => ({
+  //       name: w.witnessName,
+  //       signature_url: w.signatureUrl,
+  //       timestamp: w.timestamp || new Date().toISOString()
+  //     })),
+  //     evidence_type: evidenceType,
+  //     physical_description: physicalDescription,
+  //     quantity: parseInt(quantity),
+  //     condition_received: conditionReceived,
+  //     collector_name: currentUser.fullName,
+  //     certified_by: certifiedBy,
+  //     noted_by: notedBy,
+  //     date_collected: dateCollected,
+  //     collection_place: collectionPlace,
+  //     retrieval_address: retrievalAddress,
+  //     workflow_stage:
+  //       evidenceList.find((item) => item.id === editingId)?.workflow_stage ||
+  //       "On Field",
+  //   };
+
+  //   try {
+  //     // const url = "http://localhost:8081/intake_triage.php";
+  //     const url = "https://steadier-headscarf-maggot.ngrok-free.dev/intake_triage.php";
+  //     const response = await axios.put(url, payload);
+  //     if (response.data?.status === "success") {
+  //       setMessageType("success");
+  //       setToast({
+  //         isVisible: true,
+  //         message: "Evidence record updated successfully.",
+  //       });
+  //       setMessage("");
+  //       setTimeout(() => {
+  //         setToast({ isVisible: false, message: "" });
+  //       }, 4000);
+  //       clearFormState();
+  //       fetchEvidence();
+  //     }
+  //   } catch (err) {
+  //     console.log(err);
+  //     setMessageType("error");
+  //     setMessage("Transaction failed. Please try again.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const handleSaveEvidence = async (e) => {
     e.preventDefault();
     if (caseNumber.includes("XXXX") || caseNumber.trim() === "") {
       setMessageType("error");
       triggerToast(
-        "Error: Please replace 'XXXX' with the valid sequential case log number.",
+        "Error: Please replace 'XXXX' with the valid sequential case log number."
       );
       return;
     }
 
     const corePrefix = (AGENCY_CASE_FORMATS[investigatingAgency] || "").split(
-      "XXXX",
+      "XXXX"
     )[0];
     if (corePrefix && !caseNumber.startsWith(corePrefix)) {
       setMessageType("error");
       setMessage(
-        `Format Error: Case number for this station must begin with "${corePrefix}"`,
+        `Format Error: Case number for this station must begin with "${corePrefix}"`
       );
       return;
     }
@@ -353,17 +531,18 @@ export default function EvidenceCollectorView({ currentUser }) {
           "Collision Alert: Duplicate case layout entry rejected.",
           "error",
         );
-        // setMessage(`Collision Alert: An entry with Case Number "${caseNumber.trim()}" already exists for ${investigatingAgency}. Duplicate logs are prohibited.`);
         return;
       }
     }
 
     setLoading(true);
 
-    // --- UPDATE MARKER: SAVE EVIDENCE NORMALLY WITHOUT REDIRECTING TO SIGNATURE MODAL ---
-    if (!editingId) {
-      // Pathway: Normal direct POST creation payload setup
+    try {
+      const url = "https://steadier-headscarf-maggot.ngrok-free.dev/intake_triage.php";
+      let targetId = editingId;
+
       const payload = {
+        ...(editingId ? { id: editingId } : {}),
         investigating_agency: investigatingAgency,
         case_number: caseNumber,
         case_title: caseTitle,
@@ -372,7 +551,7 @@ export default function EvidenceCollectorView({ currentUser }) {
         witnesses: witnesses.map(w => ({
           name: w.witnessName,
           signature_url: w.signatureUrl,
-          timestamp: new Date().toISOString()
+          timestamp: w.timestamp || new Date().toISOString()
         })),
         evidence_type: evidenceType,
         physical_description: physicalDescription,
@@ -384,91 +563,170 @@ export default function EvidenceCollectorView({ currentUser }) {
         date_collected: dateCollected,
         collection_place: collectionPlace,
         retrieval_address: retrievalAddress,
-        workflow_stage: "On Field",
+        workflow_stage: editingId ? (evidenceList.find((item) => item.id === editingId)?.workflow_stage || "On Field") : "On Field",
         turned_over_by_name: currentUser.fullName,
-        collector_signature_hash: null, // Storing empty hash since signature collection step is removed
+        collector_signature_hash: null,
       };
 
-      try {
-        // const url = "http://localhost:8081/intake_triage.php";
-        const url = "https://steadier-headscarf-maggot.ngrok-free.dev/intake_triage.php";
-        const response = await axios.post(url, payload);
-        if (response.data?.status === "success") {
-          setMessageType("success");
-          triggerToast("New evidence record successfully created.", "success");
-          // setMessage({
-          //   isVisible: true,
-          //   message: "New evidence record successfully created.",
-          // });
-          setMessage("");
-          setTimeout(() => {
-            setToast({ isVisible: false, message: "", type: "error" });
-          }, 4000);
-          clearFormState();
-          fetchEvidence();
-          setCurrentPage(1);
-        }
-      } catch (err) {
-        console.error(err);
-        setMessageType("error");
-        setMessage("Transaction failed. Could not create evidence record.");
-      } finally {
-        setLoading(false);
+      let response;
+      if (editingId) {
+        response = await axios.put(url, payload);
+      } else {
+        response = await axios.post(url, payload);
       }
+
+      if (response.data?.status === "success") {
+        // If it's a new record, capture the newly generated ID from the server response
+        if (!editingId && response.data.id) {
+          targetId = response.data.id;
+        }
+
+        // AUTO-UPLOAD STAGED FILES TO THEIR SPECIFIC evidence_[ID] FOLDER
+        // AUTO-UPLOAD STAGED FILES TO THEIR SPECIFIC FOLDER
+        const filesToUpload = evidenceImages.filter(img => img.file instanceof File);
+        if (filesToUpload.length > 0) {
+          const formData = new FormData();
+
+          // 1. Pass numeric ID if available
+          if (targetId) {
+            formData.append("id", targetId);
+          }
+
+          // 2. Always pass an evidence_id fallback (derived safely from the case number)
+          const safeCaseNum = caseNumber.replace(/[^a-zA-Z0-9]/g, '_');
+          formData.append("evidence_id", `EV-2026-${safeCaseNum}`);
+
+          filesToUpload.forEach(imgObj => {
+            formData.append("evidence_files[]", imgObj.file);
+          });
+
+          const uploadRes = await fetch("https://steadier-headscarf-maggot.ngrok-free.dev/upload_evidence_image.php", {
+            method: "POST",
+            headers: {
+              "ngrok-skip-browser-warning": "true"
+            },
+            body: formData,
+          });
+
+          const uploadResult = await uploadRes.json();
+          if (uploadResult.status !== "success") {
+            triggerToast(`Upload Error: ${uploadResult.message}`, "error");
+            console.error("File upload failure:", uploadResult.message);
+            return; // Stops execution so you can see the exact error message
+          }
+        }
+
+        setMessageType("success");
+        triggerToast(
+          editingId ? "Evidence record updated successfully." : "New evidence record and files successfully created.",
+          "success"
+        );
+        setMessage("");
+
+        // Clear form and wipe staged images so nothing lingers behind
+        clearFormState();
+        setEvidenceImages([]);
+        setIsImageModalOpen(false);
+
+        fetchEvidence();
+        setCurrentPage(1);
+      }
+    } catch (err) {
+      console.error("Save process error:", err);
+      setMessageType("error");
+      triggerToast("Transaction failed. Could not save evidence record.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUploadSubmit = async (formDataPayload) => {
+    if (evidenceImages.length === 0) {
+      triggerToast("Please select at least one evidence image to upload.", "error");
       return;
     }
 
-    // --- RETAIN DIRECT SUBMIT PATH ONLY FOR EDITS (PUT REQUEST) ---
-    const payload = {
-      id: editingId,
-      investigating_agency: investigatingAgency,
-      case_number: caseNumber,
-      case_title: caseTitle,
-      suspect_names: suspectNames,
-      witness_names: witnessNames,
-      witnesses: witnesses.map(w => ({
-        name: w.witnessName,
-        signature_url: w.signatureUrl,
-        timestamp: w.timestamp || new Date().toISOString()
-      })),
-      evidence_type: evidenceType,
-      physical_description: physicalDescription,
-      quantity: parseInt(quantity),
-      condition_received: conditionReceived,
-      collector_name: currentUser.fullName,
-      certified_by: certifiedBy,
-      noted_by: notedBy,
-      date_collected: dateCollected,
-      collection_place: collectionPlace,
-      retrieval_address: retrievalAddress,
-      workflow_stage:
-        evidenceList.find((item) => item.id === editingId)?.workflow_stage ||
-        "On Field",
-    };
-
+    setIsUploading(true);
     try {
-      // const url = "http://localhost:8081/intake_triage.php";
-      const url = "https://steadier-headscarf-maggot.ngrok-free.dev/intake_triage.php";
-      const response = await axios.put(url, payload);
-      if (response.data?.status === "success") {
-        setMessageType("success");
-        setToast({
-          isVisible: true,
-          message: "Evidence record updated successfully.",
-        });
-        setMessage("");
-        setTimeout(() => {
-          setToast({ isVisible: false, message: "" });
-        }, 4000);
-        clearFormState();
-        fetchEvidence();
+      let targetId = formDataPayload?.id || editingId;
+
+      // STEP 1: If it's a new record (no editingId yet), create the database record first
+      if (!targetId) {
+        const createPayload = {
+          investigating_agency: investigatingAgency,
+          case_number: caseNumber,
+          case_title: caseTitle || "Untitled Case",
+          suspect_names: suspectNames,
+          witness_names: witnessNames,
+          witnesses: witnesses.map(w => ({
+            name: w.witnessName,
+            signature_url: w.signatureUrl,
+            timestamp: w.timestamp || new Date().toISOString()
+          })),
+          evidence_type: evidenceType,
+          physical_description: physicalDescription,
+          quantity: parseInt(quantity) || 1,
+          condition_received: conditionReceived,
+          collector_name: currentUser.fullName,
+          certified_by: certifiedBy,
+          noted_by: notedBy,
+          date_collected: dateCollected || new Date().toISOString().slice(0, 16),
+          collection_place: collectionPlace,
+          retrieval_address: retrievalAddress,
+          workflow_stage: "On Field",
+          turned_over_by_name: currentUser.fullName,
+          collector_signature_hash: null,
+        };
+
+        const createRes = await axios.post("https://steadier-headscarf-maggot.ngrok-free.dev/intake_triage.php", createPayload);
+        if (createRes.data?.status === "success" && createRes.data.id) {
+          targetId = createRes.data.id;
+          setEditingId(targetId);
+        } else {
+          throw new Error(createRes.data?.message || "Failed to create initial record for file attachment.");
+        }
       }
-    } catch (err) {
-      console.log(err);
-      setMessageType("error");
-      setMessage("Transaction failed. Please try again.");
+
+      // STEP 2: Proceed to upload the staged files
+      const data = new FormData();
+      data.append("id", targetId);
+
+      evidenceImages.forEach((imgObj) => {
+        if (imgObj.file instanceof File) {
+          data.append("evidence_files[]", imgObj.file);
+        }
+      });
+
+      const response = await fetch("https://steadier-headscarf-maggot.ngrok-free.dev/upload_evidence_image.php", {
+        method: "POST",
+        headers: {
+          "ngrok-skip-browser-warning": "true"
+        },
+        body: data,
+      });
+
+      const rawText = await response.text();
+      let result;
+      try {
+        result = JSON.parse(rawText);
+      } catch (e) {
+        throw new Error("Invalid server response: " + rawText);
+      }
+
+      if (result.status === "success") {
+        triggerToast("Evidence record and files uploaded successfully!", "success");
+        fetchEvidence();
+        setEvidenceImages([]);
+        setIsImageModalOpen(false);
+      } else {
+        throw new Error(result.message || "Upload failed.");
+      }
+
+    } catch (error) {
+      console.error("Upload error details:", error);
+      triggerToast(`Upload failed: ${error.message}`, "error");
     } finally {
-      setLoading(false);
+      setIsUploading(false);
     }
   };
 
@@ -565,6 +823,68 @@ export default function EvidenceCollectorView({ currentUser }) {
     setCaseTitle(item.case_title || "");
     setSuspectNames(item.suspect_names || "");
     setWitnessNames(item.witness_names || "");
+    // Robustly parse witnesses from backend (handles array, JSON string, or fallback keys)
+    let parsedWitnesses = [];
+    const rawWitnesses = item.witnesses || item.witnesses_data || item.witness_list;
+
+    if (Array.isArray(rawWitnesses)) {
+      parsedWitnesses = rawWitnesses;
+    } else if (typeof rawWitnesses === "string" && rawWitnesses.trim() !== "") {
+      try {
+        parsedWitnesses = JSON.parse(rawWitnesses);
+      } catch (e) {
+        parsedWitnesses = [];
+      }
+    }
+
+    setWitnesses(
+      parsedWitnesses.map((w) => ({
+        // Look for any variation of the name key returned by the backend
+        witnessName: w.witnessName || w.name || w.witness_name || "",
+        signatureUrl: w.signatureUrl || w.signature_url || "",
+        timestamp: w.timestamp || "",
+      }))
+    );
+
+    let parsedImages = [];
+    const rawImages = item.images || item.images_data || item.image_list;
+    if (Array.isArray(rawImages)) {
+      parsedImages = rawImages;
+    } else if (typeof rawImages === "string" && rawImages.trim() !== "") {
+      try { parsedImages = JSON.parse(rawImages); } catch (e) { parsedImages = []; }
+    }
+
+    const formattedExistingImages = parsedImages.map(img => {
+      const rawPath = typeof img === 'string' ? img : (img.file_path || img.previewUrl || "");
+      let cleanPath = rawPath.replace(/\\/g, "/").replace(/^\/+/, "");
+
+      if (cleanPath.startsWith("backend/")) {
+        cleanPath = cleanPath.replace("backend/", "");
+      }
+
+      return {
+        file: null,
+        name: img.file_name || "Evidence Image",
+        file_path: cleanPath, // Store clean relative path (e.g. uploads/evidence_images/...)
+        previewUrl: `https://steadier-headscarf-maggot.ngrok-free.dev/${cleanPath}`
+      };
+    });
+
+    setEvidenceImages(formattedExistingImages);
+
+    async function fetchSecureImage(url) {
+      try {
+        const response = await fetch(url, {
+          headers: { "ngrok-skip-browser-warning": "true" }
+        });
+        const blob = await response.blob();
+        return URL.createObjectURL(blob);
+      } catch (err) {
+        console.error("Failed to load secure image", err);
+        return "";
+      }
+    }
+
     setEvidenceType(
       item.evidence_type === "Digital Media Unit"
         ? "Digital Media"
@@ -575,7 +895,28 @@ export default function EvidenceCollectorView({ currentUser }) {
     setConditionReceived(item.condition_received || "");
     setCertifiedBy(item.certified_by || "");
     setNotedBy(item.noted_by || "");
-    setDateCollected(item.date_collected || "");
+    // setDateCollected(item.date_collected || "");
+    // Safely parse and format date_collected for the datetime-local input (YYYY-MM-DDTHH:mm)
+    const rawDate = item.created_at || item.date_collected || item.date || item.datetime_collected;
+
+    if (rawDate) {
+      let formattedDate = String(rawDate).trim();
+
+      // Replace space with 'T' if it's in SQL format ('YYYY-MM-DD HH:mm:ss')
+      if (formattedDate.includes(" ")) {
+        formattedDate = formattedDate.replace(" ", "T");
+      }
+
+      // Trim seconds/milliseconds off if present to fit YYYY-MM-DDTHH:mm (16 characters)
+      if (formattedDate.length > 16) {
+        formattedDate = formattedDate.slice(0, 16);
+      }
+
+      setDateCollected(formattedDate);
+    } else {
+      setDateCollected("");
+    }
+
     setCollectionPlace(item.collection_place || "");
     setRetrievalAddress(item.retrieval_address || "");
     setIsFormOpen(true);
@@ -893,60 +1234,6 @@ export default function EvidenceCollectorView({ currentUser }) {
               </span>
               <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wide ml-1">
                 transfers
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* CLASSIFICATION BREAKDOWN MINI-CARDS */}
-      {!isFormOpen && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 print:hidden">
-          {/* Digital Media Mini-Card */}
-          <div className="group relative bg-slate-950/40 border border-slate-800/50 rounded-xl p-3.5 flex justify-between items-center backdrop-blur-md shadow-inner hover:border-slate-700/80 hover:bg-slate-950/60 transition-all duration-200">
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.6)] group-hover:scale-125 transition-transform"></div>
-              <div className="text-xs font-bold uppercase tracking-wide text-slate-400 group-hover:text-slate-300 transition-colors">
-                Digital Media
-              </div>
-            </div>
-            <div className="text-xs font-mono font-black text-slate-200 bg-slate-900/90 px-2.5 py-1 rounded-lg border border-slate-800/80 group-hover:border-blue-500/30 group-hover:text-blue-400 transition-all shadow-inner">
-              {countSubCategory("Digital Media") ||
-                countSubCategory("Digital Media Unit")}{" "}
-              <span className="text-[10px] text-slate-500 font-sans font-normal lowercase ml-0.5">
-                units
-              </span>
-            </div>
-          </div>
-
-          {/* Physical Specimens Mini-Card */}
-          <div className="group relative bg-slate-950/40 border border-slate-800/50 rounded-xl p-3.5 flex justify-between items-center backdrop-blur-md shadow-inner hover:border-slate-700/80 hover:bg-slate-950/60 transition-all duration-200">
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.6)] group-hover:scale-125 transition-transform"></div>
-              <div className="text-xs font-bold uppercase tracking-wide text-slate-400 group-hover:text-slate-300 transition-colors">
-                Physical Specimens
-              </div>
-            </div>
-            <div className="text-xs font-mono font-black text-slate-200 bg-slate-900/90 px-2.5 py-1 rounded-lg border border-slate-800/80 group-hover:border-emerald-500/30 group-hover:text-emerald-400 transition-all shadow-inner">
-              {countSubCategory("Physical Specimen")}{" "}
-              <span className="text-[10px] text-slate-500 font-sans font-normal lowercase ml-0.5">
-                units
-              </span>
-            </div>
-          </div>
-
-          {/* Documentary Evidence Mini-Card */}
-          <div className="group relative bg-slate-950/40 border border-slate-800/50 rounded-xl p-3.5 flex justify-between items-center backdrop-blur-md shadow-inner hover:border-slate-700/80 hover:bg-slate-950/60 transition-all duration-200">
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 bg-purple-500 rounded-full shadow-[0_0_8px_rgba(168,85,247,0.6)] group-hover:scale-125 transition-transform"></div>
-              <div className="text-xs font-bold uppercase tracking-wide text-slate-400 group-hover:text-slate-300 transition-colors">
-                Documentary Evidence
-              </div>
-            </div>
-            <div className="text-xs font-mono font-black text-slate-200 bg-slate-900/90 px-2.5 py-1 rounded-lg border border-slate-800/80 group-hover:border-purple-500/30 group-hover:text-purple-400 transition-all shadow-inner">
-              {countSubCategory("Documentary Evidence")}{" "}
-              <span className="text-[10px] text-slate-500 font-sans font-normal lowercase ml-0.5">
-                units
               </span>
             </div>
           </div>
@@ -1486,33 +1773,178 @@ export default function EvidenceCollectorView({ currentUser }) {
 
             {/* HIDDEN IMAGE COLLECTION UPLOAD BRIDGE */}
             <input
-              type="file"
               id="evidentia-image-collection-upload"
-              accept="image/*"
+              type="file"
               multiple
-              onChange={(e) =>
-                handleImageCollectionUpload(
-                  e,
-                  triggerToast,
-                  (images) => setEvidenceImages((prev) => [...prev, ...images])
-                )
-              }
+              accept="image/*"
               className="hidden"
+              onChange={handleFile}
             />
 
-            {/* NEW: UPLOAD IMAGE COLLECTION BUTTON */}
-            <button
-              type="button"
-              onClick={() =>
-                document.getElementById("evidentia-image-collection-upload").click()
-              }
-              className="px-5 py-2.5 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 font-bold text-[11px] rounded-xl uppercase tracking-widest transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 shadow-md group"
-            >
-              <ImagePlus className="w-3.5 h-3.5 text-blue-400 transition-transform group-hover:-translate-y-0.5" />
-              Upload Images ({evidenceImages.length})
-            </button>
+            {/* IMAGE MANAGEMENT ACTION BAR */}
+            <div className="flex items-center gap-3 mt-3">
+              <button
+                type="button"
+                onClick={() => document.getElementById("evidentia-image-collection-upload").click()}
+                className="px-5 py-2.5 bg-slate-900/60 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 font-bold text-[11px] rounded-xl uppercase tracking-widest transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2 shadow-md group"
+              >
+                <ImagePlus className="w-3.5 h-3.5 text-blue-400 transition-transform group-hover:-translate-y-0.5" />
+                Upload Images ({evidenceImages.length})
+              </button>
 
-            {/* 1. IMPORT BUTTON (Secondary Action) */}
+              {evidenceImages.length > 0 && (
+                <button
+                  type="button"
+                  disabled={isUploading}
+                  onClick={() => setIsImageModalOpen(true)}
+                  className="px-5 py-2.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 font-bold text-[11px] rounded-xl uppercase tracking-widest transition-all duration-200 flex items-center gap-2"
+                >
+                  View Staged Images/Saved Images ({evidenceImages.length})
+                </button>
+              )}
+            </div>
+
+            {/* IMAGE PREVIEW / FILE MANIFEST MODAL */}
+            {/* IMAGE PREVIEW / FILE MANIFEST MODAL WITH SMALL THUMBNAILS & CRUD */}
+            {/* IMAGE PREVIEW / FILE MANIFEST MODAL */}
+            {/* IMAGE PREVIEW / FILE MANIFEST MODAL */}
+            {isImageModalOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                <div className="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-2xl p-6 shadow-2xl flex flex-col max-h-[85vh]">
+                  <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+                    <div>
+                      <h3 className="text-white font-bold text-sm uppercase tracking-wider">
+                        Linked Evidence Files Manifest ({evidenceImages.length})
+                      </h3>
+                      <p className="text-[10px] text-slate-400">Secure record registry mapping & file management</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsImageModalOpen(false)}
+                        className="text-slate-400 hover:text-white text-xs font-bold uppercase bg-slate-800 px-3 py-1.5 rounded-lg"
+                      >
+                        Close
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={isUploading}
+                        onClick={() => handleUploadSubmit({ id: editingId })}
+                        className="px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold uppercase rounded-lg shadow-md"
+                      >
+                        {isUploading ? "Uploading..." : "Confirm & Save Files"}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Clean File List Manifest with Lucide Icon & Download Feature */}
+                  <div className="space-y-2.5 overflow-y-auto py-4 max-h-[60vh] pr-1">
+                    {evidenceImages.map((img, idx) => {
+                      // Determine the proper download URL (supports both local blobs and server-stored paths)
+                      const downloadUrl = img.file instanceof File ? img.previewUrl : img.file_path;
+
+                      return (
+                        <div key={idx} className="flex items-center justify-between bg-slate-950 border border-slate-800/80 px-4 py-3 rounded-xl hover:border-slate-700 transition-all">
+                          <div className="flex items-center gap-3 overflow-hidden">
+
+                            {/* File Icon Badge using Lucide Image Icon */}
+                            <div className="w-10 h-10 rounded-xl bg-blue-600/10 border border-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 shadow-inner">
+                              <Image className="w-5 h-5 text-blue-400" />
+                            </div>
+
+                            <div className="overflow-hidden">
+                              <p className="text-xs font-bold text-white truncate max-w-xs sm:max-w-md" title={img.name}>
+                                {img.name || "Evidence Document / Image"}
+                              </p>
+                              <p className="text-[10px] text-slate-500 font-mono mt-0.5">
+                                {img.file instanceof File ? `Staged: ${(img.file.size / 1024).toFixed(1)} KB` : "Stored on Server Record"}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Action Buttons: Download & Delete */}
+                          <div className="flex items-center gap-2 shrink-0 ml-3">
+                            {/* Download Button via PHP Streamer */}
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                try {
+                                  if (img.file instanceof File) {
+                                    const link = document.createElement('a');
+                                    link.href = img.previewUrl;
+                                    link.download = img.name;
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                    return;
+                                  }
+
+                                  // Point directly to download_file.php endpoint with relative path
+                                  const downloadEndpoint = `https://steadier-headscarf-maggot.ngrok-free.dev/download_file.php?file=${encodeURIComponent(img.file_path)}`;
+
+                                  const response = await fetch(downloadEndpoint, {
+                                    headers: { "ngrok-skip-browser-warning": "true" }
+                                  });
+
+                                  if (!response.ok) throw new Error("File not found on server");
+
+                                  const blob = await response.blob();
+                                  const blobUrl = window.URL.createObjectURL(blob);
+                                  const link = document.createElement('a');
+                                  link.href = blobUrl;
+                                  link.download = img.name || "evidence_file";
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                  window.URL.revokeObjectURL(blobUrl);
+                                } catch (err) {
+                                  triggerToast("Download failed: File path could not be resolved.", "error");
+                                }
+                              }}
+                              className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg font-bold transition-all flex items-center gap-1 cursor-pointer"
+                            >
+                              Download
+                            </button>
+
+                            {/* Delete Button (CRUD) */}
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (!img.file && editingId) {
+                                  try {
+                                    await axios.delete("https://steadier-headscarf-maggot.ngrok-free.dev/upload_evidence_image.php", {
+                                      headers: { "ngrok-skip-browser-warning": "true" },
+                                      data: { id: editingId, file_path: img.file_path }
+                                    });
+                                    triggerToast("File successfully deleted from directory and database.", "success");
+                                  } catch (err) {
+                                    triggerToast("Failed to delete file from server.", "error");
+                                    return;
+                                  }
+                                }
+                                setEvidenceImages(evidenceImages.filter((_, i) => i !== idx));
+                              }}
+                              className="text-xs bg-red-950/40 text-red-400 border border-red-900/50 hover:bg-red-900/40 px-3 py-1.5 rounded-lg font-bold transition-all"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {evidenceImages.length === 0 && (
+                      <div className="text-center py-12 text-slate-500 text-xs italic font-mono">
+                        No files staged or linked to this record yet.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* IMPORT BUTTON (Secondary Action) */}
             <button
               type="button"
               onClick={() =>
@@ -2014,74 +2446,85 @@ export default function EvidenceCollectorView({ currentUser }) {
           <div className="print-portal-wrapper fixed inset-0 bg-black/80 backdrop-blur-sm z-50 overflow-y-auto flex justify-center p-0 sm:p-6 print:absolute print:inset-0 print:bg-white print:block print:z-[99999]">
             <style dangerouslySetInnerHTML={{
               __html: `
-          @media print {
-            /* 1. Hide the entire body visually, but keep layout trees alive to prevent collapsing */
-            html, body {
-              background-color: #ffffff !important;
-              color: #000000 !important;
-              margin: 0 !important;
-              padding: 0 !important;
-              visibility: hidden !important;
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
+    @media print {
+      /* 1. Reset root elements to allow multi-page flow */
+      html, body {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        visibility: hidden !important;
+        height: auto !important;
+        overflow: visible !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
 
-            /* 2. Force ONLY our specific printable template area and its contents to be visible */
-            .print-portal-container,
-            .print-portal-container * {
-              visibility: visible !important;
-            }
-            
-            /* 3. Absolute anchor the visible container to the top-left of Page 1 */
-            .print-portal-container {
-              position: absolute !important;
-              left: 0 !important;
-              top: 0 !important;
-              width: 100% !important;
-              max-width: 100% !important;
-              background-color: #ffffff !important;
-              color: #000000 !important;
-              padding: 0 !important;
-              margin: 0 !important;
-              box-shadow: none !important;
-              border: none !important;
-              display: flex !important;
-              flex-direction: column !important;
-            }
+      /* 2. Show printable container elements */
+      .print-portal-container,
+      .print-portal-container * {
+        visibility: visible !important;
+      }
+      
+      /* 3. Use static/relative positioning so pagination is respected */
+      .print-portal-wrapper {
+        position: static !important;
+        background: white !important;
+        padding: 0 !important;
+        overflow: visible !important;
+      }
 
-            .print-portal-container > div {
-              background-color: #ffffff !important;
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
+      .print-portal-container {
+        position: relative !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        border: none !important;
+        display: block !important;
+        overflow: visible !important;
+      }
 
-            /* 4. Force ink override rules so elements don't drop text contrast */
-            .print-portal-container text,
-            .print-portal-container p,
-            .print-portal-container span,
-            .print-portal-container h1,
-            .print-portal-container h2,
-            .print-portal-container h3,
-            .print-portal-container div {
-              color: #000000 !important;
-            }
+      /* 4. Page break controls */
+      .print-page-break {
+        page-break-after: always !important;
+        break-after: page !important;
+        height: auto !important;
+        min-h-[297mm] !important;
+      }
 
-            @page { 
-              margin: 10mm !important; 
-              background-color: #ffffff !important;
-            }
-            
-            .print\\:hidden { 
-              display: none !important; 
-            }
-          }
-        `}} />
+      .print-portal-container text,
+      .print-portal-container p,
+      .print-portal-container span,
+      .print-portal-container h1,
+      .print-portal-container h2,
+      .print-portal-container h3,
+      .print-portal-container div {
+        color: #000000 !important;
+      }
+
+      @page { 
+        margin: 10mm !important; 
+        size: A4 portrait;
+      }
+      
+      .print\\:hidden { 
+        display: none !important; 
+      }
+    }
+  `
+            }} />
 
             {/* Printable Portal Window Container */}
             <div className="print-portal-container bg-white text-black w-full max-w-[210mm] mx-auto shadow-2xl flex flex-col relative print:shadow-none print:p-0">
 
               {/* ================= SHEET 1: PROPERTY EVIDENCE LOG LAYOUT ================= */}
-              <div className="bg-white p-8 sm:p-10 flex flex-col justify-between print:h-[297mm] print:box-border print:page-break-after-always" style={{ pageBreakAfter: 'always', breakAfter: 'page', backgroundColor: '#ffffff' }}>
+              <div className="bg-white p-8 sm:p-10 flex flex-col justify-between print-page-break print:p-0 print:box-border" style={{ backgroundColor: '#ffffff' }}>
                 <div>
                   <div className="text-[11px] font-normal font-sans leading-tight text-black">
                     <p>CSI Form "4"</p>
@@ -2139,7 +2582,11 @@ export default function EvidenceCollectorView({ currentUser }) {
                         {activePrintRow.date_collected
                           ? new Date(
                             activePrintRow.date_collected,
-                          ).toLocaleDateString()
+                          ).toLocaleDateString(undefined, {
+                            month: "long",
+                            day: "numeric",
+                            year: "numeric",
+                          })
                           : ""}
                       </div>
                       <p className="text-xs mt-1 text-black">Date</p>
@@ -2191,10 +2638,11 @@ export default function EvidenceCollectorView({ currentUser }) {
                             ""}
                         </td>
                         <td className="p-2 whitespace-normal leading-tight font-mono">
-                          {activePrintRow.date_collected
-                            ? new Date(
-                              activePrintRow.date_collected,
-                            ).toLocaleDateString()
+                          {activePrintRow.created_at
+                            ? new Date(activePrintRow.created_at).toLocaleString([], {
+                              dateStyle: "short",
+                              timeStyle: "short",
+                            })
                             : ""}
                         </td>
                         <td className="p-2 text-left leading-tight">
@@ -2210,9 +2658,19 @@ export default function EvidenceCollectorView({ currentUser }) {
                         <td className="p-2 text-left italic text-gray-700">
                           {activePrintRow.condition_received || ""}
                         </td>
-                        <td className="p-2 text-left italic text-gray-400 font-mono text-[9px] pt-6">
-                          (Place signature stamp here)
-                        </td>
+                        {activePrintRow?.collector_signature_hash ? (
+                          <td className="p-1 text-center align-middle relative">
+                            <img
+                              src={activePrintRow.collector_signature_hash}
+                              alt="Collector Signature"
+                              className="mx-auto max-h-6 max-w-full object-contain"
+                            />
+                          </td>
+                        ) : (
+                          <td className="p-2 text-left italic text-gray-400 font-mono text-[9px] pt-6">
+                            (Place signature stamp here)
+                          </td>
+                        )}
                       </tr>
                       {[1, 2, 3, 4, 5, 6].map((idx) => (
                         <tr key={idx} className="divide-x divide-black h-10">
@@ -2321,7 +2779,7 @@ export default function EvidenceCollectorView({ currentUser }) {
               </div>
 
               {/* ================= SHEET 2: CHAIN OF CUSTODY FORM LAYOUT ================= */}
-              <div className="bg-white p-8 sm:p-10 flex flex-col justify-between border-t-2 border-dashed border-gray-300 print:border-none print:h-[297mm] print:box-border" style={{ backgroundColor: '#ffffff' }}>
+              <div className="bg-white p-8 sm:p-10 flex flex-col justify-between border-t-2 border-dashed border-gray-300 print:border-none print-page-break print:p-0 print:box-border" style={{ backgroundColor: '#ffffff' }}>
                 <div>
                   <div className="text-center space-y-0.5 text-black">
                     <p className="text-xs">Republic of the Philippines</p>
@@ -2423,8 +2881,8 @@ export default function EvidenceCollectorView({ currentUser }) {
                         Time, Date and Place of Occurrence:
                       </span>
                       <div className="flex-1 border-b border-black font-medium px-2 pb-0.5 font-mono text-[11px]">
-                        {activePrintRow.date_collected
-                          ? `${new Date(activePrintRow.date_collected).toLocaleString()} `
+                        {activePrintRow.created_at
+                          ? `${new Date(activePrintRow.created_at).toLocaleString()} `
                           : ""}
                         {activePrintRow.collection_place ||
                           activePrintRow.retrieval_address
@@ -2568,22 +3026,102 @@ export default function EvidenceCollectorView({ currentUser }) {
 
                     {/* CUSTODY BLOCK 2 */}
                     <div className="space-y-3 opacity-40 select-none">
-                      <div className="grid grid-cols-12 gap-2 items-start">
-                        <div className="col-span-4 font-normal pt-1">
+                      <div className="grid grid-cols-12 gap-1 items-start">
+                        <div className="col-span-4 font-normal pt-1 uppercase text-[10px] text-gray-600 font-bold">
                           TURNED OVER BY
                         </div>
-                        <div className="col-span-8 space-y-1.5">
-                          <div className="border-b border-gray-300 min-h-[1.25rem]"></div>
-                          <div className="border-b border-gray-300 min-h-[1.25rem]"></div>
+                        <div className="col-span-8 space-y-2">
+                          <div className="text-center">
+                            <div className="border-b border-black px-4 font-medium uppercase min-h-[1.25rem]">
+                              {activePrintRow.certified_by ||
+                                activePrintRow.collector_name ||
+                                "Seizing Officer"}
+                            </div>
+                            <span className="text-[10px] text-gray-500 block mt-0.5">
+                              (Name and Designation)
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-12 gap-1 items-end">
+                            <span className="col-span-3 text-left text-gray-500">
+                              Agency/Address
+                            </span>
+                            <div className="col-span-9 border-b border-black px-2 min-h-[1.25rem] uppercase">
+                              {activePrintRow.turned_over_by_agency ||
+                                activePrintRow.investigating_agency}
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-12 gap-1 items-end">
+                            <span className="col-span-3 text-left text-gray-500">
+                              Time and Date
+                            </span>
+                            <div className="col-span-9 border-b border-black px-2 min-h-[1.25rem] font-mono">
+                              {activePrintRow.created_at
+                                ? new Date(
+                                  activePrintRow.created_at,
+                                ).toLocaleString()
+                                : ""}
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-12 gap-1 items-end">
+                            <span className="col-span-3 text-left text-gray-500">
+                              Remarks
+                            </span>
+                            <div className="col-span-9 border-b border-black px-2 italic text-gray-600 min-h-[1.25rem]">
+                              Initial Processing Handover /{" "}
+                              {activePrintRow.condition_received}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <div className="grid grid-cols-12 gap-2 items-start pt-1">
-                        <div className="col-span-4 font-normal pt-1">
+                      <div className="grid grid-cols-12 gap-2 items-start pt-1 border-t border-dashed border-gray-200">
+                        <div className="col-span-4 font-normal pt-1 uppercase text-[10px] text-blue-900 font-bold">
                           RECEIVED BY
                         </div>
-                        <div className="col-span-8 space-y-1.5">
-                          <div className="border-b border-gray-300 min-h-[1.25rem]"></div>
-                          <div className="border-b border-gray-300 min-h-[1.25rem]"></div>
+                        <div className="col-span-8 space-y-2">
+                          <div className="text-center">
+                            <div className="border-b border-black px-4 font-bold text-blue-900 uppercase min-h-[1.25rem]">
+                              {activePrintRow.turned_over_by_agency ||
+                                activePrintRow.investigating_agency} -
+                              {activePrintRow.noted_by ||
+                                "______________________________________"}
+                            </div>
+                            <span className="text-[10px] text-gray-500 block mt-0.5">
+                              (Name and Designation)
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-12 gap-1 items-end">
+                            <span className="col-span-3 text-left text-gray-500">
+                              Agency/Address
+                            </span>
+                            <div className="col-span-9 border-b border-black px-2 min-h-[1.25rem] uppercase">
+                              {activePrintRow.received_by_agency ||
+                                "CRIME LABORATORY EVIDENCE VAULT DIVISION"}
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-12 gap-1 items-end">
+                            <span className="col-span-3 text-left text-gray-500">
+                              Time and Date
+                            </span>
+                            <div className="col-span-9 border-b border-black px-2 min-h-[1.25rem] font-mono">
+                              {activePrintRow.created_at
+                                ? new Date(
+                                  activePrintRow.created_at,
+                                ).toLocaleString()
+                                : ""}
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-12 gap-1 items-end">
+                            <span className="col-span-3 text-left text-gray-500">
+                              Remarks Ledger
+                            </span>
+                            <div className="col-span-9 border-b border-black px-2 min-h-[1.25rem] font-mono text-xs text-blue-950 font-semibold">
+                              Vault Allocation:{" "}
+                              {activePrintRow.storage_vault || "Vault Room"} [
+                              {activePrintRow.workflow_stage ||
+                                "Turnover Pending"}
+                              ]
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>

@@ -4,6 +4,9 @@ import React, { useState, useEffect } from "react";
 import HomeDashboard from "./HomeDashboard";
 import EvidentiaDashboard from "./EvidentiaDashboard";
 import UserManagement from "./UserManagement";
+import EvidenceCollectorView from "./EvidenceCollectorView";
+import EvidenceCustodianView from "./EvidenceCustodianView";
+import EvidenceSupervisorView from "./EvidenceSupervisorView";
 import AuditManagement from "./AuditManagement";
 
 // import EvidenceCollectorView from "./EvidenceCollectorView";
@@ -132,120 +135,141 @@ export default function AdminDashboard({ activeUser, onLogout }) {
             </p>
           </div>
 
-          {/* ALL LINKS UNMASKED: Removed conditional logic completely so Admin sees everything */}
-          <nav className="space-y-2 mt-12">
-            {/* EVIDENCE VAULT MANAGEMENT */}
+          {/* ALL LINKS UNMASKED: Navigation options */}
+          <nav className="space-y-1.5 mt-8 overflow-y-auto max-h-[calc(100vh-250px)] pr-1 scrollbar-thin scrollbar-thumb-slate-800">
+            {/* Dashboard */}
             <button
               onClick={() => {
                 setCurrentView("home");
                 setIsMobileMenuOpen(false);
               }}
-              className={`w-full text-left px-4 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-3 border ${
+              className={`w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-3 border ${
                 currentView === "home"
                   ? "bg-blue-600/10 text-blue-400 border-blue-500/20 shadow-lg shadow-blue-950/10"
                   : "bg-transparent text-slate-400 border-transparent hover:bg-slate-800/50 hover:text-slate-200"
               }`}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="2"
-                stroke="currentColor"
-                className="w-4 h-4"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M20.25 14.15v4.25c0 .594-.482 1.076-1.076 1.076H4.826c-.594 0-1.076-.482-1.076-1.076v-4.25m16.5 0a2.04 2.04 0 00-.044-.425l-1.68-6.162a2.04 2.04 0 00-1.965-1.503H6.365c-.883 0-1.656.565-1.965 1.503l-1.68 6.162a2.04 2.04 0 00-.044.425m16.5 0a2.04 2.04 0 01-1.076 1.833h-2.14a2.039 2.039 0 01-1.834-1.183l-.332-.746a2.039 2.039 0 00-1.834-1.183h-3.414a2.039 2.039 0 00-1.834 1.183l-.332.746a2.039 2.039 0 01-1.834 1.183h-2.14A2.04 2.04 0 013.75 14.15m9.462-10.15H10.5a1.5 1.5 0 00-1.5 1.5v2.25A1.5 1.5 0 0010.5 9.3h2.712a1.5 1.5 0 001.5-1.5V5.5a1.5 1.5 0 00-1.5-1.5z"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.25c0 .594-.482 1.076-1.076 1.076H4.826c-.594 0-1.076-.482-1.076-1.076v-4.25m16.5 0a2.04 2.04 0 00-.044-.425l-1.68-6.162a2.04 2.04 0 00-1.965-1.503H6.365c-.883 0-1.656.565-1.965 1.503l-1.68 6.162a2.04 2.04 0 00-.044.425m16.5 0a2.04 2.04 0 01-1.076 1.833h-2.14a2.039 2.039 0 01-1.834-1.183l-.332-.746a2.039 2.039 0 00-1.834-1.183h-3.414a2.039 2.039 0 00-1.834 1.183l-.332.746a2.039 2.039 0 01-1.834 1.183h-2.14A2.04 2.04 0 013.75 14.15m9.462-10.15H10.5a1.5 1.5 0 00-1.5 1.5v2.25A1.5 1.5 0 0010.5 9.3h2.712a1.5 1.5 0 001.5-1.5V5.5a1.5 1.5 0 00-1.5-1.5z" />
               </svg>
               Dashboard
             </button>
 
-            {/* EVIDENCE VAULT MANAGEMENT */}
+            {/* Manage Evidence */}
             <button
               onClick={() => {
                 setCurrentView("evidence");
                 setIsMobileMenuOpen(false);
               }}
-              className={`w-full text-left px-4 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-3 border ${
+              className={`w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-3 border ${
                 currentView === "evidence"
                   ? "bg-blue-600/10 text-blue-400 border-blue-500/20 shadow-lg shadow-blue-950/10"
                   : "bg-transparent text-slate-400 border-transparent hover:bg-slate-800/50 hover:text-slate-200"
               }`}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="2"
-                stroke="currentColor"
-                className="w-4 h-4"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M20.25 14.15v4.25c0 .594-.482 1.076-1.076 1.076H4.826c-.594 0-1.076-.482-1.076-1.076v-4.25m16.5 0a2.04 2.04 0 00-.044-.425l-1.68-6.162a2.04 2.04 0 00-1.965-1.503H6.365c-.883 0-1.656.565-1.965 1.503l-1.68 6.162a2.04 2.04 0 00-.044.425m16.5 0a2.04 2.04 0 01-1.076 1.833h-2.14a2.039 2.039 0 01-1.834-1.183l-.332-.746a2.039 2.039 0 00-1.834-1.183h-3.414a2.039 2.039 0 00-1.834 1.183l-.332.746a2.039 2.039 0 01-1.834 1.183h-2.14A2.04 2.04 0 013.75 14.15m9.462-10.15H10.5a1.5 1.5 0 00-1.5 1.5v2.25A1.5 1.5 0 0010.5 9.3h2.712a1.5 1.5 0 001.5-1.5V5.5a1.5 1.5 0 00-1.5-1.5z"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
               </svg>
               Manage Evidence
             </button>
 
-            {/* IDENTITY WORKSPACE MANAGEMENT */}
+            {/* Submenu Divider */}
+            <div className="pt-2 pb-1">
+              <hr className="border-slate-800/80 my-1" />
+              <span className="text-[10px] uppercase font-mono text-slate-500 tracking-wider px-2">Role Views</span>
+            </div>
+
+            {/* Collector View */}
+            <button
+              onClick={() => {
+                setCurrentView("collector");
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full text-left pl-6 pr-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-3 border ${
+                currentView === "collector"
+                  ? "bg-blue-600/10 text-blue-400 border-blue-500/20 shadow-lg shadow-blue-950/10"
+                  : "bg-transparent text-slate-400 border-transparent hover:bg-slate-800/50 hover:text-slate-200"
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+              </svg>
+              Collector View
+            </button>
+
+            {/* Custodian View */}
+            <button
+              onClick={() => {
+                setCurrentView("custodian");
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full text-left pl-6 pr-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-3 border ${
+                currentView === "custodian"
+                  ? "bg-blue-600/10 text-blue-400 border-blue-500/20 shadow-lg shadow-blue-950/10"
+                  : "bg-transparent text-slate-400 border-transparent hover:bg-slate-800/50 hover:text-slate-200"
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 10V11.25M6 19.5h12a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6A2.25 2.25 0 003.75 10.5v6.75A2.25 2.25 0 006 19.5z" />
+              </svg>
+              Custodian View
+            </button>
+
+            {/* Supervisor View */}
+            <button
+              onClick={() => {
+                setCurrentView("supervisor");
+                setIsMobileMenuOpen(false);
+              }}
+              className={`w-full text-left pl-6 pr-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-3 border ${
+                currentView === "supervisor"
+                  ? "bg-blue-600/10 text-blue-400 border-blue-500/20 shadow-lg shadow-blue-950/10"
+                  : "bg-transparent text-slate-400 border-transparent hover:bg-slate-800/50 hover:text-slate-200"
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.25 2.25 0 0115 23.25H4.5A2.25 2.25 0 012.25 21V6A2.25 2.25 0 014.5 3.75h6.75m0 0h4.5a2.25 2.25 0 012.25 2.25v7.5m-9-9V12m0-8.25l3.75 3.75" />
+              </svg>
+              Supervisor View
+            </button>
+
+            {/* Submenu Divider */}
+            <div className="pt-2 pb-1">
+              <hr className="border-slate-800/80 my-1" />
+            </div>
+
+            {/* Manage Identity */}
             <button
               onClick={() => {
                 setCurrentView("identity");
                 setIsMobileMenuOpen(false);
               }}
-              className={`w-full text-left px-4 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-3 border ${
+              className={`w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-3 border ${
                 currentView === "identity"
                   ? "bg-blue-600/10 text-blue-400 border-blue-500/20 shadow-lg shadow-blue-950/10"
                   : "bg-transparent text-slate-400 border-transparent hover:bg-slate-800/50 hover:text-slate-200"
               }`}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="2"
-                stroke="currentColor"
-                className="w-4 h-4"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-9-4.5h12a2.25 2.25 0 012.25 2.25v10.5A2.25 2.25 0 0118 18.75H6a2.25 2.25 0 01-2.25-2.25V5.25A2.25 2.25 0 016 3.75z"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-9-4.5h12a2.25 2.25 0 012.25 2.25v10.5A2.25 2.25 0 0118 18.75H6a2.25 2.25 0 01-2.25-2.25V5.25A2.25 2.25 0 016 3.75z" />
               </svg>
               Manage Identity
             </button>
 
-            {/* SYSTEM ACTIVITY AUDIT MANAGEMENT */}
+            {/* Manage Audit */}
             <button
               onClick={() => {
                 setCurrentView("audit");
                 setIsMobileMenuOpen(false);
               }}
-              className={`w-full text-left px-4 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-3 border ${
+              className={`w-full text-left px-4 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-3 border ${
                 currentView === "audit"
                   ? "bg-blue-600/10 text-blue-400 border-blue-500/20 shadow-lg shadow-blue-950/10"
                   : "bg-transparent text-slate-400 border-transparent hover:bg-slate-800/50 hover:text-slate-200"
               }`}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/xl"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="2"
-                stroke="currentColor"
-                className="w-4 h-4"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
               </svg>
               Manage Audit
             </button>
@@ -257,7 +281,7 @@ export default function AdminDashboard({ activeUser, onLogout }) {
             setIsMobileMenuOpen(false);
             onLogout();
           }}
-          className="mt-8 w-full py-3 bg-slate-950 hover:bg-red-950/40 border border-slate-800 hover:border-red-500/30 text-slate-400 hover:text-red-400 font-bold rounded-xl text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2"
+          className="mt-4 w-full py-2.5 bg-slate-950 hover:bg-red-950/40 border border-slate-800 hover:border-red-500/30 text-slate-400 hover:text-red-400 font-bold rounded-xl text-xs uppercase tracking-wider transition-all duration-150 flex items-center justify-center gap-2"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -280,8 +304,11 @@ export default function AdminDashboard({ activeUser, onLogout }) {
       {/* CORE WORKSPACE CONTAINER */}
       <main className="flex-1 min-w-0 md:h-screen md:overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6">
         {currentView === "home" && <HomeDashboard activeUser={activeUser} />}
-        {currentView === "evidence" &&<EvidentiaDashboard activeUser={activeUser} />}
+        {currentView === "evidence" && <EvidentiaDashboard activeUser={activeUser} />}
         {currentView === "identity" && <UserManagement activeUser={activeUser} />}
+        {currentView === "collector" && <EvidenceCollectorView activeUser={activeUser} />}
+        {currentView === "custodian" && <EvidenceCustodianView activeUser={activeUser} />}
+        {currentView === "supervisor" && <EvidenceSupervisorView activeUser={activeUser} />}
         {currentView === "audit" && <AuditManagement activeUser={activeUser} />}
       </main>
     </div>

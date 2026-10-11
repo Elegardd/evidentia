@@ -238,19 +238,8 @@ export default function SignaturePadModal({
       return;
     }
 
-    const transferPayload = {
-      evidence_id: evidenceItem?.id,
-      releasing_custodian_id: currentUser?.id,
-      receiving_custodian_name: handshakeTargetCustodian,
-      receiving_supervisor_name: handshakeTargetSupervisor,
-      transfer_remarks: turnoverRemarks,
-      signature_data: baseSignatureUrl,
-      signature_instances: signatures,
-      transfer_timestamp: new Date().toISOString()
-    };
-
-    // Pass the generated baseSignatureUrl to the parent callback for database submission
-    onSave(transferPayload);
+    // Call onSave with the base signature URL (which your parent views expect)
+    onSave(baseSignatureUrl);
 
     setToast({
       isVisible: true,
@@ -262,7 +251,6 @@ export default function SignaturePadModal({
     setTimeout(() => {
       handleCloseReset();
     }, 300);
-    // handleCloseReset();
   };
 
   const handleCloseReset = () => {
