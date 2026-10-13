@@ -69,7 +69,7 @@ export default function EvidenceCustodianView({ currentUser }) {
     setLoading(true);
     try {
       // const response = await axios.get("http://localhost:8081/intake_triage.php",
-      const response = await axios.get("https://steadier-headscarf-maggot.ngrok-free.dev/intake_triage.php",
+      const response = await axios.get("/api/intake_triage.php",
         {
           headers: { "ngrok-skip-browser-warning": "true" },
         },
@@ -99,7 +99,7 @@ export default function EvidenceCustodianView({ currentUser }) {
     const fetchStationPersonnel = async () => {
       try {
         // const response = await axios.get("http://localhost:8081/get_users.php",
-        const response = await axios.get("https://steadier-headscarf-maggot.ngrok-free.dev/get_users.php",
+        const response = await axios.get("/api/get_users.php",
           {
             headers: { "ngrok-skip-browser-warning": "true" },
           },
@@ -161,7 +161,7 @@ export default function EvidenceCustodianView({ currentUser }) {
       };
 
       // const response = await axios.put("http://localhost:8081/intake_triage.php",
-      const response = await axios.put("https://steadier-headscarf-maggot.ngrok-free.dev/intake_triage.php",
+      const response = await axios.put("/api/intake_triage.php",
         payload,
       );
 
@@ -1525,7 +1525,7 @@ export default function EvidenceCustodianView({ currentUser }) {
                 };
 
                 // const response = await axios.put("http://localhost:8081/intake_triage.php",
-                const response = await axios.put("https://steadier-headscarf-maggot.ngrok-free.dev/intake_triage.php",
+                const response = await axios.put("/api/intake_triage.php",
                   payload,
                 );
                 if (response.data?.status === "success") {

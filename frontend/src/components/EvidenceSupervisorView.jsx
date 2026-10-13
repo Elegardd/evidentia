@@ -67,7 +67,7 @@ export default function EvidenceSupervisorView({ currentUser }) {
     setLoading(true);
     try {
       // const url = "http://localhost:8081/intake_triage.php";
-      const url = "https://steadier-headscarf-maggot.ngrok-free.dev/intake_triage.php";
+      const url = "/api/intake_triage.php";
       const response = await axios.get(url, {
         headers: { "ngrok-skip-browser-warning": "true" },
       });
@@ -88,7 +88,7 @@ export default function EvidenceSupervisorView({ currentUser }) {
   const fetchPersonnelData = useCallback(async () => {
     try {
       // const url = "http://localhost:8081/get_users.php?action=personnel";
-      const url = "https://steadier-headscarf-maggot.ngrok-free.dev/get_users.php?action=personnel";
+      const url = "/api/get_users.php?action=personnel";
       const response = await axios.get(url, {
         headers: { "ngrok-skip-browser-warning": "true" },
       });
@@ -121,7 +121,7 @@ export default function EvidenceSupervisorView({ currentUser }) {
       };
 
       // const url = "http://localhost:8081/intake_triage.php";
-      const url = "https://steadier-headscarf-maggot.ngrok-free.dev/intake_triage.php";
+      const url = "/api/intake_triage.php";
       const response = await axios.put(url, payload);
 
       if (response.data?.status === "success") {
@@ -154,7 +154,7 @@ export default function EvidenceSupervisorView({ currentUser }) {
         turnover_remarks: `[Authorized Court Dispatch] - Released under supervision of ${currentUser?.fullName || "Station Supervisor"} for active case presentation.`,
       };
 
-      const url = "https://steadier-headscarf-maggot.ngrok-free.dev/intake_triage.php";
+      const url = "/api/intake_triage.php";
       const response = await axios.put(url, payload);
 
       if (response.data?.status === "success") {
