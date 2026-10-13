@@ -93,11 +93,24 @@ export default function App() {
     setMessage("");
     setMessageType("");
 
-    // UPDATE: Soft block interface submittals if lock mechanism is explicitly ticking
     if (lockoutTimeLeft > 0) {
       setMessageType("error");
       return;
     }
+
+    try {
+      const response = await axios.post("https://api.evichain.org/login.php", {
+        username: username,
+        password: password
+      });
+      console.log("Success:", response.data);
+      // Add your success handling here (e.g., routing to dashboard)
+    } catch (err) {
+      console.error("Login error:", err);
+      setMessage(err.response?.data?.message || "Login failed");
+      setMessageType("error");
+    }
+};
 
     const formData = new FormData();
     formData.append("username", username);
