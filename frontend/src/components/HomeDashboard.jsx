@@ -75,7 +75,7 @@ export default function HomeDashboard() {
     setConnectionError(null);
     try {
       const res = await axios.get(
-        "/api/home_stats.php",
+        "https://api.evichain.orghome_stats.php",
         { headers: { "ngrok-skip-browser-warning": "ayakerrtssss" } }
       );
 
@@ -96,7 +96,7 @@ export default function HomeDashboard() {
     setIsLoadingSigned(true);
     try {
       const res = await axios.get(
-        "/api/intake_triage.php",
+        "https://api.evichain.orgintake_triage.php",
         { headers: { "ngrok-skip-browser-warning": "ayakerrtssss" } }
       );
 
@@ -113,7 +113,7 @@ export default function HomeDashboard() {
 
   const fetchPersonnel = async () => {
     try {
-      const res = await axios.get("/api/get_users.php", {
+      const res = await axios.get("https://api.evichain.orgget_users.php", {
         headers: { "ngrok-skip-browser-warning": "ayakerrtssss" }
       });
       if (res.data && res.data.users && Array.isArray(res.data.users)) {

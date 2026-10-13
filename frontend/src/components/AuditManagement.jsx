@@ -58,7 +58,7 @@ export default function AuditManagement({ onLogout }) {
     try {
       // const res = await axios.get("http://localhost:8081/get_audit_logs.php");
       const res = await axios.get(
-        "/api/get_audit_logs.php",
+        "https://api.evichain.orgget_audit_logs.php",
         {
           headers: {
             "ngrok-skip-browser-warning": "ayakerrtssss",

@@ -246,7 +246,7 @@ export default function EvidenceCollectorView({ currentUser }) {
     setLoading(true);
     try {
       // const response = await axios.get("http://localhost:8081/intake_triage.php",
-      const response = await axios.get("/api/intake_triage.php",
+      const response = await axios.get("https://api.evichain.orgintake_triage.php",
         {
           headers: { "ngrok-skip-browser-warning": "true" },
         },
@@ -276,7 +276,7 @@ export default function EvidenceCollectorView({ currentUser }) {
       try {
         // 1. Points to get_users.php instead of users.php
         // const response = await axios.get("http://localhost:8081/get_users.php",
-        const response = await axios.get("/api/get_users.php",
+        const response = await axios.get("https://api.evichain.orgget_users.php",
           {
             headers: { "ngrok-skip-browser-warning": "true" },
           },
@@ -414,7 +414,7 @@ export default function EvidenceCollectorView({ currentUser }) {
 
   //     try {
   //       // const url = "http://localhost:8081/intake_triage.php";
-  //       const url = "/api/intake_triage.php";
+  //       const url = "https://api.evichain.orgintake_triage.php";
   //       const response = await axios.post(url, payload);
   //       if (response.data?.status === "success") {
   //         setMessageType("success");
@@ -471,7 +471,7 @@ export default function EvidenceCollectorView({ currentUser }) {
 
   //   try {
   //     // const url = "http://localhost:8081/intake_triage.php";
-  //     const url = "/api/intake_triage.php";
+  //     const url = "https://api.evichain.orgintake_triage.php";
   //     const response = await axios.put(url, payload);
   //     if (response.data?.status === "success") {
   //       setMessageType("success");
@@ -538,7 +538,7 @@ export default function EvidenceCollectorView({ currentUser }) {
     setLoading(true);
 
     try {
-      const url = "/api/intake_triage.php";
+      const url = "https://api.evichain.orgintake_triage.php";
       let targetId = editingId;
 
       const payload = {
@@ -600,7 +600,7 @@ export default function EvidenceCollectorView({ currentUser }) {
             formData.append("evidence_files[]", imgObj.file);
           });
 
-          const uploadRes = await fetch("/api/upload_evidence_image.php", {
+          const uploadRes = await fetch("https://api.evichain.orgupload_evidence_image.php", {
             method: "POST",
             headers: {
               "ngrok-skip-browser-warning": "true"
@@ -678,7 +678,7 @@ export default function EvidenceCollectorView({ currentUser }) {
           collector_signature_hash: null,
         };
 
-        const createRes = await axios.post("/api/intake_triage.php", createPayload);
+        const createRes = await axios.post("https://api.evichain.orgintake_triage.php", createPayload);
         if (createRes.data?.status === "success" && createRes.data.id) {
           targetId = createRes.data.id;
           setEditingId(targetId);
@@ -697,7 +697,7 @@ export default function EvidenceCollectorView({ currentUser }) {
         }
       });
 
-      const response = await fetch("/api/upload_evidence_image.php", {
+      const response = await fetch("https://api.evichain.orgupload_evidence_image.php", {
         method: "POST",
         headers: {
           "ngrok-skip-browser-warning": "true"
@@ -797,7 +797,7 @@ export default function EvidenceCollectorView({ currentUser }) {
   //   };
 
   //   try {
-  //     const url = "/api/intake_triage.php";
+  //     const url = "https://api.evichain.orgintake_triage.php";
   //     const response = await axios.put(url, payload);
   //     if (response.data?.status === "success") {
   //       setMessageType("success");
@@ -866,7 +866,7 @@ export default function EvidenceCollectorView({ currentUser }) {
         file: null,
         name: img.file_name || "Evidence Image",
         file_path: cleanPath, // Store clean relative path (e.g. uploads/evidence_images/...)
-        previewUrl: `/api/${cleanPath}`
+        previewUrl: `https://api.evichain.org${cleanPath}`
       };
     });
 
@@ -931,7 +931,7 @@ export default function EvidenceCollectorView({ currentUser }) {
     setLoading(true);
     try {
       // const response = await axios.put("http://localhost:8081/intake_triage.php",
-      const response = await axios.put("/api/intake_triage.php",
+      const response = await axios.put("https://api.evichain.orgintake_triage.php",
         {
           ...selectedEvidenceItem,
           workflow_stage: "Turnover Pending",
@@ -979,7 +979,7 @@ export default function EvidenceCollectorView({ currentUser }) {
     setIsArchivingSubmitting(true);
     try {
       // await axios.delete("http://localhost:8081/intake_triage.php",
-      await axios.delete("/api/intake_triage.php",
+      await axios.delete("https://api.evichain.orgintake_triage.php",
         {
           data: { id: evidenceId, reason: archiveReason },
         },
@@ -1881,7 +1881,7 @@ export default function EvidenceCollectorView({ currentUser }) {
                                   }
 
                                   // Point directly to download_file.php endpoint with relative path
-                                  const downloadEndpoint = `/api/download_file.php?file=${encodeURIComponent(img.file_path)}`;
+                                  const downloadEndpoint = `https://api.evichain.orgdownload_file.php?file=${encodeURIComponent(img.file_path)}`;
 
                                   const response = await fetch(downloadEndpoint, {
                                     headers: { "ngrok-skip-browser-warning": "true" }
@@ -1913,7 +1913,7 @@ export default function EvidenceCollectorView({ currentUser }) {
                               onClick={async () => {
                                 if (!img.file && editingId) {
                                   try {
-                                    await axios.delete("/api/upload_evidence_image.php", {
+                                    await axios.delete("https://api.evichain.orgupload_evidence_image.php", {
                                       headers: { "ngrok-skip-browser-warning": "true" },
                                       data: { id: editingId, file_path: img.file_path }
                                     });
@@ -2366,7 +2366,7 @@ export default function EvidenceCollectorView({ currentUser }) {
               setLoading(true);
               try {
                 // const url = "http://localhost:8081/intake_triage.php";
-                const url = "/api/intake_triage.php";
+                const url = "https://api.evichain.orgintake_triage.php";
                 const response = await axios.post(url, {
                   investigating_agency: investigatingAgency,
                   case_number: caseNumber,

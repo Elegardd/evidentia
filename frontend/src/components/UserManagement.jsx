@@ -155,7 +155,7 @@ export default function UserManagement({ onLogout }) {
     setIsLoadingUsers(true);
     try {
       // const response = await axios.get("http://localhost:8081/get_users.php",
-        const response = await axios.get("/api/get_users.php",
+        const response = await axios.get("https://api.evichain.orgget_users.php",
         {
           headers: {
             "ngrok-skip-browser-warning": "ayakerrtssss",
@@ -246,7 +246,7 @@ export default function UserManagement({ onLogout }) {
 
     try {
       // const response = await axios.post("http://localhost:8081/create_user.php",
-        const response = await axios.post("/api/create_user.php",
+        const response = await axios.post("https://api.evichain.orgcreate_user.php",
         payload,
         { headers: { "Content-Type": "application/json" } },
       );
@@ -316,7 +316,7 @@ export default function UserManagement({ onLogout }) {
     setIsSaving(true);
     try {
       // const response = await axios.post("http://localhost:8081/update_user.php",
-        const response = await axios.post("/api/update_user.php",
+        const response = await axios.post("https://api.evichain.orgupdate_user.php",
         {
           id,
           username: editForm.username.trim(),
@@ -361,7 +361,7 @@ export default function UserManagement({ onLogout }) {
     setIsDeleting(true);
     try {
       // const response = await axios.post("http://localhost:8081/delete_user.php",
-        const response = await axios.post("/api/delete_user.php",
+        const response = await axios.post("https://api.evichain.orgdelete_user.php",
         {
           id: userTargetedForDeletion.id,
           status: "archived", // Targets archiving rather than deletion
@@ -391,7 +391,7 @@ export default function UserManagement({ onLogout }) {
     const nextStatus = currentStatus === "suspended" ? "active" : "suspended";
     try {
       // const response = await axios.post("http://localhost:8081/delete_user.php",
-        const response = await axios.post("/api/delete_user.php",
+        const response = await axios.post("https://api.evichain.orgdelete_user.php",
         {
           id: id,
           status: nextStatus,

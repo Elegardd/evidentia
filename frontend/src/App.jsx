@@ -105,7 +105,7 @@ export default function App() {
 
     try {
       // const response = await axios.post("http://localhost:8081/login.php", formData);
-      const response = await axios.post("/api/login.php",
+      const response = await axios.post("https://api.evichain.orglogin.php",
         formData, {
         headers: {
           "ngrok-skip-browser-warning": "ayakerrtssss"
@@ -163,7 +163,7 @@ export default function App() {
 
     try {
       // const response = await axios.post("http://localhost:8081/request_reset.php", formData);
-      const response = await axios.post("/api/request_reset.php",
+      const response = await axios.post("https://api.evichain.orgrequest_reset.php",
         formData, {
         headers: {
           "ngrok-skip-browser-warning": "ayakerrtssss"
