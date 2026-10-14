@@ -97,16 +97,16 @@ export default function App() {
       return;
     }
 
-    const formData = new FormData();
-    formData.append("username", username);
-    formData.append("password", password);
-
     try {
       const response = await axios.post(
         "https://api.evichain.org/login.php",
-        formData,
+        {
+          username: username,
+          password: password
+        },
         {
           headers: {
+            "Content-Type": "application/json",
             "ngrok-skip-browser-warning": "ayakerrtssss"
           }
         }
@@ -136,7 +136,7 @@ export default function App() {
         if (data.lockout_until) {
           const secondsRemaining = Math.max(0, data.lockout_until - Math.floor(Date.now() / 1000));
           setLockoutTimeLeft(secondsRemaining);
-          setTotalLockoutDuration(secondsRemaining); // Retained for progress calculations
+          setTotalLockoutDuration(secondsRemaining);
         }
       } else {
         setMessage("Invalid username or password.");
@@ -151,28 +151,28 @@ export default function App() {
     setMessageType("");
     setIsSubmitting(true);
 
-    const formData = new FormData();
-    formData.append("email", resetEmail);
-
     try {
-      // const response = await axios.post("http://localhost:8081/request_reset.php", formData);
-      const response = await axios.post("https://api.evichain.org/request_reset.php",
-        formData, {
-        headers: {
-          "ngrok-skip-browser-warning": "ayakerrtssss"
+      const response = await axios.post(
+        "https://api.evichain.org/request_reset.php",
+        {
+          email: resetEmail
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "ngrok-skip-browser-warning": "ayakerrtssss"
+          }
         }
-      });
+      );
 
       if (response.data.status === "success") {
         setMessageType("success");
         setMessage("Recovery link compiled successfully.");
         setResetEmail("");
 
-        // Capture the real URL string sent by your PHP script safely inside the async wrapper
         if (response.data.debug_link) {
           setActiveResetLink(response.data.debug_link);
         } else {
-          // Fallback redirect if no debugging url is appended by the API
           setTimeout(() => setView("login"), 3000);
         }
       } else {
