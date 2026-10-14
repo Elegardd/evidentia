@@ -1,5 +1,4 @@
-// eslint-disable-next-line no-unused-vars
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Spline from '@splinetool/react-spline';
 import './index.css';
@@ -98,50 +97,31 @@ export default function App() {
       return;
     }
 
-    try {
-      const response = await axios.post("https://api.evichain.org/login.php", {
-        username: username,
-        password: password
-      });
-      console.log("Success:", response.data);
-      // Add your success handling here (e.g., routing to dashboard)
-    } catch (err) {
-      console.error("Login error:", err);
-      setMessage(err.response?.data?.message || "Login failed");
-      setMessageType("error");
-    }
-};
-
     const formData = new FormData();
     formData.append("username", username);
     formData.append("password", password);
 
     try {
-      // const response = await axios.post("http://localhost:8081/login.php", formData);
-      const response = await axios.post("https://api.evichain.org/login.php",
-        formData, {
-        headers: {
-          "ngrok-skip-browser-warning": "ayakerrtssss"
+      const response = await axios.post(
+        "https://api.evichain.org/login.php",
+        formData,
+        {
+          headers: {
+            "ngrok-skip-browser-warning": "ayakerrtssss"
+          }
         }
-      });
+      );
 
       if (response.data.status === "success" || response.data.status === "connection success") {
-
         const userData = response.data.user;
 
         if (userData && userData.role) {
-          // This saves the complete object: id, username, full_name, role, AND sub_role into localStorage
           localStorage.setItem("evidentia_session", JSON.stringify(userData));
-          setUser(userData); // Triggers immediately direct to the user
+          setUser(userData);
         } else {
           setMessageType("error");
           setMessage("Authorization structure missing from response payload.");
         }
-
-        // const userRole = response.data.role || response.data.user?.role;
-        // const userData = { username: username, role: userRole };
-        // localStorage.setItem("evidentia_session", JSON.stringify(userData));
-        // setUser(userData);
       } else {
         setMessageType("error");
         setMessage(response.data.message || "Invalid authentication criteria.");
